@@ -1,7 +1,7 @@
 # Проект «Киноман»
 
 * Студент: [Илья Хицков](https://up.htmlacademy.ru/ecmascript/16/user/1846483).
-* Наставник: `Неизвестно`.
+* Наставник: [Сергей Вохмянин](https://htmlacademy.ru/profile/id530823).
 
 ---
 
