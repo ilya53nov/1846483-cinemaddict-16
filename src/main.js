@@ -1,9 +1,9 @@
-import { createSiteMenuTemplate } from './view/site-menu-view.js';
-import { createButtonShowMoreTemplate } from './view/button-show-more-view.js';
-import { createFilmCardTemplate } from './view/film-card-view.js';
-import { createFilmDetailsTemplate } from './view/film-details-view.js';
-import { createUserRankTemplate } from './view/user-rank-view.js';
-import { RenderPosition, renderTemplate } from './render.js';
+import MenuView from './view/site-menu-view.js';
+import ButtonShowMoreView from './view/button-show-more-view.js';
+import FilmCardView from './view/film-card-view.js';
+import FilmDetailsView from './view/film-details-view.js';
+import UserRankView from './view/user-rank-view.js';
+import { RenderPosition, render } from './render.js';
 import { generateFilter } from './mock/filter.js';
 
 import { generateMovie } from './mock/generate.js';
@@ -32,17 +32,49 @@ const getHistoryFilterCount = (filtersItem) => {
 };
 
 // Отрисовка звания пользователя
-renderTemplate(siteHeaderElement, createUserRankTemplate(getHistoryFilterCount(filters)),RenderPosition.BEFOREEND);
+render(siteHeaderElement, new UserRankView(getHistoryFilterCount(filters)).element, RenderPosition.BEFOREEND);
 
 // Отрисовка меню
-renderTemplate(siteMainElement, createSiteMenuTemplate(filters), RenderPosition.BEFOREEND);
+render(siteMainElement, new MenuView(filters).element, RenderPosition.BEFOREEND);
+
+// Обработчик закрытия попапа
+const onClosePopup = (element) => {
+  document.body.classList.toggle('hide-overflow');
+  siteMainElement.removeChild(element);
+};
+
+// Обработчик открытия попапа
+const onShowPopup = (movie) => {
+  const filmDetailsViewElement = new FilmDetailsView(movie).element;
+  const closeButtonFilmDetailsViewElement = filmDetailsViewElement.querySelector('.film-details__close-btn');
+
+  document.body.classList.toggle('hide-overflow');
+  siteMainElement.appendChild(filmDetailsViewElement);
+
+  closeButtonFilmDetailsViewElement.addEventListener('click', () => {
+    onClosePopup(filmDetailsViewElement);
+  });
+};
+
+// Функция добавления карточки фильма
+const addFilmCard = (movie) => {
+  const filmCardViewElement = new FilmCardView(movie).element;
+
+  render(filmsListContainer, filmCardViewElement, RenderPosition.BEFOREEND);
+
+  filmCardViewElement.addEventListener('click', () => {
+    onShowPopup(movie);
+  });
+
+};
 
 // Обработчик кнопки 'ShowMore'
 const onShowMoreButton = (evt) => {
   evt.preventDefault();
+
   movies
     .slice(renderedMovieCount, renderedMovieCount + FILM_COUNT_PER_STEP)
-    .forEach((movie) => renderTemplate(filmsListContainer, createFilmCardTemplate(movie), RenderPosition.BEFOREEND));
+    .forEach((movie) => addFilmCard(movie));
 
   renderedMovieCount += FILM_COUNT_PER_STEP;
 
@@ -55,12 +87,13 @@ const onShowMoreButton = (evt) => {
 
 // Отрисовка карточки фильма
 for (let i = 0; i < Math.min(movies.length, FILM_COUNT_PER_STEP); i++) {
-  renderTemplate(filmsListContainer, createFilmCardTemplate(movies[i]), RenderPosition.BEFOREEND);
+  addFilmCard(movies[i]);
 }
 
 if (movies.length > FILM_COUNT_PER_STEP) {
+
   // Отрисовка кнопки "Show more"
-  renderTemplate(siteMainElement, createButtonShowMoreTemplate(), RenderPosition.AFTEREND);
+  render(siteMainElement, new ButtonShowMoreView().element, RenderPosition.AFTEREND);
 
   const showMoreButton = document.querySelector('.films-list__show-more');
 
@@ -68,8 +101,5 @@ if (movies.length > FILM_COUNT_PER_STEP) {
 }
 
 siteMainElement.appendChild(filmsListContainer);
-
-// Отрисовка подробной информации о фильме
-renderTemplate(siteMainElement, createFilmDetailsTemplate(movies[0]), RenderPosition.BEFOREEND);
 
 footerStatistics.textContent = movies.length;
