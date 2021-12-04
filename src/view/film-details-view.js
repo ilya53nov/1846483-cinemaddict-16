@@ -1,6 +1,7 @@
 import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
 import { getListTemplate } from '../utils.js';
+import { createElement } from '../render.js';
 
 dayjs.extend(duration);
 
@@ -53,7 +54,7 @@ const createFilmDetailsEmojiTemplate = (emoji) => (
 
 const createFilmDetailsEmojiListTemplate = () => getListTemplate(EMOTIONS, createFilmDetailsEmojiTemplate);
 
-export const createFilmDetailsTemplate = (movie) => {
+const createFilmDetailsTemplate = (movie) => {
   const {filmInfo, comments} = movie;
   const {
     description,
@@ -145,3 +146,28 @@ export const createFilmDetailsTemplate = (movie) => {
   </form>
 </section>`);
 };
+
+export default class FilmDetailsView{
+  #element = null;
+  #movie = null;
+
+  constructor(movie) {
+    this.#movie = movie;
+  }
+
+  get element(){
+    if (!this.#element) {
+      this.#element = createElement(this.template);
+    }
+
+    return this.#element;
+  }
+
+  get template() {
+    return createFilmDetailsTemplate(this.#movie);
+  }
+
+  removeElement() {
+    this.#element = null;
+  }
+}
