@@ -1,3 +1,5 @@
+import { createElement } from '../render.js';
+
 const userRanks = [
   {
     name: 'Novice',
@@ -26,7 +28,7 @@ const getUserRank = (value) => {
   }
 };
 
-export const createUserRankTemplate = (value) => (
+const createUserRankTemplate = (value) => (
   `<section class="header__profile profile">
     ${value > 0
     ? `<p class="profile__rating">${getUserRank(value)}</p>
@@ -34,3 +36,28 @@ export const createUserRankTemplate = (value) => (
     : ''}
   </section>`
 );
+
+export default class UserRankView{
+  #element = null;
+  #value = 0;
+
+  constructor(value){
+    this.#value = value;
+  }
+
+  get element() {
+    if (!this.#element) {
+      this.#element = createElement(this.template);
+    }
+
+    return this.#element;
+  }
+
+  get template() {
+    return createUserRankTemplate(this.#value);
+  }
+
+  removeElement() {
+    this.#element = null;
+  }
+}
