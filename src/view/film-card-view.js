@@ -1,6 +1,8 @@
 import dayjs from 'dayjs';
-import {getHoursAndMinutesFromMinutes} from '../utils.js';
+import duration from 'dayjs/plugin/duration';
 import {createFilmCardControlsTemplate} from './film-card-controls-view.js';
+
+dayjs.extend(duration);
 
 const MAX_LENGTH_DESCRIPTION = 140;
 
@@ -16,7 +18,7 @@ export const createFilmCardTemplate = (movie) => {
       <p class="film-card__rating">${totalRating}</p>
       <p class="film-card__info">
         <span class="film-card__year">${dayjs(date).year()}</span>
-        <span class="film-card__duration">${getHoursAndMinutesFromMinutes(runtime)}</span>
+        <span class="film-card__duration">${dayjs.duration(runtime, 'minutes').format(`${runtime > 60 ? 'H[h] m[m]' : 'm[m]'}`)}</span>
         <span class="film-card__genre">${genre[0]}</span>
       </p>
       <img src="${poster}" alt="" class="film-card__poster">

@@ -1,5 +1,15 @@
 import dayjs from 'dayjs';
-import { getHoursAndMinutesFromMinutes } from '../utils.js';
+import duration from 'dayjs/plugin/duration';
+import { getListTemplate } from '../utils.js';
+
+dayjs.extend(duration);
+
+const EMOTIONS = [
+  'smile',
+  'sleeping',
+  'puke',
+  'angry'
+];
 
 const createFilmDetailsCommentTemplate = (comments) => {
   const {emotion, comment, author, date} = comments;
@@ -21,25 +31,11 @@ const createFilmDetailsCommentTemplate = (comments) => {
   );
 };
 
-const createFilmDetailsCommentListTemplate = (comments) => {
-  let content = '';
+const createFilmDetailsCommentListTemplate = (comments) => getListTemplate(comments, createFilmDetailsCommentTemplate);
 
-  for (const comment of comments) {
-    content += createFilmDetailsCommentTemplate(comment);
-  }
+const createFilmDetailsGenreTemplate = (genre) => `<span class="film-details__genre">${genre}</span>`;
 
-  return content;
-};
-
-const createFilmDetailsGenreTemplate = (genres) => {
-  let content = '';
-
-  for (const genre of genres) {
-    content += `<span class="film-details__genre">${genre}</span>`;
-  }
-
-  return content;
-};
+const createFilmDetailsGenreListTemplate = (genres) => getListTemplate(genres, createFilmDetailsGenreTemplate);
 
 const createFilmDetailsTableRowTemplate = (term, cell) => (
   `<tr class="film-details__row">
@@ -55,22 +51,7 @@ const createFilmDetailsEmojiTemplate = (emoji) => (
   </label>`
 );
 
-const createFilmDetailsEmojiListTemplate = () => {
-  const emotions = [
-    'smile',
-    'sleeping',
-    'puke',
-    'angry'
-  ];
-
-  let content = '';
-
-  for (const emotion of emotions) {
-    content += createFilmDetailsEmojiTemplate(emotion);
-  }
-
-  return content;
-};
+const createFilmDetailsEmojiListTemplate = () => getListTemplate(EMOTIONS, createFilmDetailsEmojiTemplate);
 
 export const createFilmDetailsTemplate = (movie) => {
   const {filmInfo, comments} = movie;
@@ -120,9 +101,9 @@ export const createFilmDetailsTemplate = (movie) => {
             ${createFilmDetailsTableRowTemplate('Writers', writers.join(', '))}
             ${createFilmDetailsTableRowTemplate('Actors', actors.join(', '))}
             ${createFilmDetailsTableRowTemplate('Release Date', dayjs(date).format('DD MMMM YYYY'))}
-            ${createFilmDetailsTableRowTemplate('Runtime', getHoursAndMinutesFromMinutes(runtime))}
+            ${createFilmDetailsTableRowTemplate('Runtime', dayjs.duration(runtime, 'minutes').format(`${runtime > 60 ? 'H[h] m[m]' : 'm[m]'}`))}
             ${createFilmDetailsTableRowTemplate('Country', releaseCountry)}
-            ${createFilmDetailsTableRowTemplate(`${genre.length > 1 ? 'Genres' : 'Genre'}`, createFilmDetailsGenreTemplate(genre))}
+            ${createFilmDetailsTableRowTemplate(`${genre.length > 1 ? 'Genres' : 'Genre'}`, createFilmDetailsGenreListTemplate(genre))}
           </table>
 
           <p class="film-details__film-description">

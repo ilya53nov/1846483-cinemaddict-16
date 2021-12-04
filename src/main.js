@@ -6,7 +6,7 @@ import { createUserRankTemplate } from './view/user-rank-view.js';
 import { RenderPosition, renderTemplate } from './render.js';
 import { generateFilter } from './mock/filter.js';
 
-import { generateMovie } from './mock/generate-data.js';
+import { generateMovie } from './mock/generate.js';
 
 const FILM_COUNT = 25;
 const FILM_COUNT_PER_STEP = 5;

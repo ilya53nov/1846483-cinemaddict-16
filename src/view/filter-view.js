@@ -1,3 +1,4 @@
+import { getListTemplate } from '../utils.js';
 
 const createFilterItemTemplate = (filter) => {
   const {name, count} = filter;
@@ -7,8 +8,4 @@ const createFilterItemTemplate = (filter) => {
   );
 };
 
-export const createFilterTemplate = (filterItems) => (
-  filterItems
-    .map((filter) => createFilterItemTemplate(filter))
-    .join('')
-);
+export const createFilterTemplate = (filterItems) => getListTemplate(filterItems, createFilterItemTemplate);

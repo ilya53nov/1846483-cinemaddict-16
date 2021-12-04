@@ -1,5 +1,4 @@
 const DECIMAL_PLACES = 1;
-const MINUTES_PER_HOUR = 60;
 
 // Функция из интернета по генерации случайного числа из диапазона
 // Источник - https://github.com/you-dont-need/You-Dont-Need-Lodash-Underscore#_random
@@ -19,9 +18,12 @@ export const getRandomFloat = (a = 1, b = 0) => {
 
 export const getRandomDate = (start, end) => new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
 
-export const getHoursAndMinutesFromMinutes = (totalMinutes) => {
-  const hours = Math.floor(totalMinutes / MINUTES_PER_HOUR);
-  const minutes = totalMinutes % MINUTES_PER_HOUR;
+export const getRandomItem = (items) => items[getRandomInteger(items.length - 1)];
 
-  return `${hours > 0 ? `${hours}h` : ''} ${minutes > 0 ? `${minutes}m` : ''}`;
-};
+export const getRandomItems = (items) => items.slice(0, getRandomInteger(1, items.length - 1));
+
+export const getListTemplate = (items, template) => (
+  items
+    .map((item) => template(item))
+    .join('')
+);
