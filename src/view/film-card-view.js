@@ -1,12 +1,13 @@
 import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
 import {createFilmCardControlsTemplate} from './film-card-controls-view.js';
+import { createElement } from '../render.js';
 
 dayjs.extend(duration);
 
 const MAX_LENGTH_DESCRIPTION = 140;
 
-export const createFilmCardTemplate = (movie) => {
+const createFilmCardTemplate = (movie) => {
   const {filmInfo, comments} = movie;
   const {description, poster, title, totalRating, genre, runtime, release} = filmInfo;
   const {date} = release;
@@ -28,3 +29,28 @@ export const createFilmCardTemplate = (movie) => {
     ${createFilmCardControlsTemplate()}
   </article>`);
 };
+
+export default class FilmCardView{
+  #element = null;
+  #movie = null;
+
+  constructor(movie) {
+    this.#movie = movie;
+  }
+
+  get element() {
+    if (!this.#element) {
+      this.#element = createElement(this.template);
+    }
+
+    return this.#element;
+  }
+
+  get template() {
+    return createFilmCardTemplate(this.#movie);
+  }
+
+  removeElement() {
+    this.#element = null;
+  }
+}
