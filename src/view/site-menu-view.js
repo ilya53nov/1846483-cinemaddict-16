@@ -1,7 +1,7 @@
 import { createFilterTemplate } from './filter-view.js';
 import { createElement } from '../render.js';
 
-const createSiteMenuTemplate = (filter) => (
+const createNavigationTemplate = (filter) => (
   `<nav class="main-navigation">
     <div class="main-navigation__items">
       <a href="#all" class="main-navigation__item main-navigation__item--active">All movies</a>
@@ -28,7 +28,7 @@ export default class MenuView{
   }
 
   get template() {
-    return createSiteMenuTemplate(this.#filter);
+    return createNavigationTemplate(this.#filter);
   }
 
   removeElement() {
