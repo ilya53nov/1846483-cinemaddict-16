@@ -1,4 +1,4 @@
-import { getListTemplate } from '../utils.js';
+import { getListTemplate } from '../utils/utils.js';
 
 const createFilterItemTemplate = (filter) => {
   const {name, count} = filter;
