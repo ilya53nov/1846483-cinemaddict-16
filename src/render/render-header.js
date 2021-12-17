@@ -1,4 +1,4 @@
-import {render, RenderPosition} from '../render.js';
+import {render, RenderPosition} from '../utils/render.js';
 import UserRankView from '../view/user-rank-view';
 import {filters} from '../mock/get-generate-date.js';
 
@@ -13,6 +13,6 @@ const getHistoryFilterCount = (filtersItem) => {
 
 export const renderHeader = () => {
   // Отрисовка звания пользователя
-  render(siteHeaderElement, new UserRankView(getHistoryFilterCount(filters)).element, RenderPosition.BEFOREEND);
+  render(siteHeaderElement, new UserRankView(getHistoryFilterCount(filters)), RenderPosition.BEFOREEND);
 
 };

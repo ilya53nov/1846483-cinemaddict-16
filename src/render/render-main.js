@@ -1,10 +1,11 @@
-import {getCreatedElement} from '../utils.js';
-import {render, RenderPosition} from '../render.js';
+import {getCreatedElement} from '../utils/utils.js';
+import {render, RenderPosition} from '../utils/render.js';
 import FilmCardView from '../view/film-card-view.js';
 import MenuView from '../view/site-menu-view.js';
 import ButtonShowMoreView from '../view/button-show-more-view.js';
 import {showPopup} from './render-popup.js';
 import {movies, filters} from '../mock/get-generate-date.js';
+import { remove } from '../utils/render.js';
 
 const FILM_COUNT_PER_STEP = 5;
 
@@ -22,19 +23,15 @@ const filmsListContainer = getCreatedElement('div', 'films-list__container');
 
 // Функция отрисовки карточки фильма
 const renderFilmCard = (movie) => {
-  const filmCardViewComponent = new FilmCardView(movie).element;
+  const filmCardViewComponent = new FilmCardView(movie);
 
   render(filmsListContainer, filmCardViewComponent, RenderPosition.BEFOREEND);
 
-  filmCardViewComponent.addEventListener('click', () => {
-    showPopup(movie);
-  });
-
+  filmCardViewComponent.setClickHandler(() => showPopup(movie));
 };
 
 // Обработчик кнопки 'ShowMore'
-const onShowMoreButtonClick = (evt) => {
-  evt.preventDefault();
+const onShowMoreButtonClick = (component) => {
 
   movies
     .slice(renderedMovieCount, renderedMovieCount + FILM_COUNT_PER_STEP)
@@ -43,8 +40,7 @@ const onShowMoreButtonClick = (evt) => {
   renderedMovieCount += FILM_COUNT_PER_STEP;
 
   if (renderedMovieCount >= movies.length) {
-    evt.target.remove();
-    evt.target.removeEventListener('click', onShowMoreButtonClick);
+    remove(component);
     renderedMovieCount = FILM_COUNT_PER_STEP;
   }
 };
@@ -53,7 +49,7 @@ const filmsListTitle = () => '<h2 class="films-list__title">There are no movies 
 
 export const renderMain = () => {
   // Отрисовка меню
-  render(siteMainElement, new MenuView(filters).element, RenderPosition.AFTERBEGIN);
+  render(siteMainElement, new MenuView(filters), RenderPosition.AFTERBEGIN);
 
   if (movies.length > 0) {
     // Отрисовка карточки фильма
@@ -66,11 +62,11 @@ export const renderMain = () => {
     if (movies.length > FILM_COUNT_PER_STEP) {
 
       // Отрисовка кнопки "Show more"
-      const buttonShowMoreComponent = new ButtonShowMoreView().element;
+      const buttonShowMoreComponent = new ButtonShowMoreView();
 
       render(filmsListSection, buttonShowMoreComponent, RenderPosition.AFTEREND);
 
-      buttonShowMoreComponent.addEventListener('click', onShowMoreButtonClick);
+      buttonShowMoreComponent.setClickHandler(() => onShowMoreButtonClick(buttonShowMoreComponent));
     }
 
   } else {

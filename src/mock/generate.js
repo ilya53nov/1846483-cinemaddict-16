@@ -1,4 +1,4 @@
-import { getRandomInteger, getRandomFloat, getRandomDate, getRandomItem, getRandomItems } from '../utils.js';
+import { getRandomInteger, getRandomFloat, getRandomDate, getRandomItem, getRandomItems } from '../utils/utils.js';
 import { DESCRIPTION, FEEDBACKS, AUTHORS, EMOTIONS, POSTERS, TITLES, COUNTRIES, GENRES, DIRECTORS, WRITERS, ACTORS } from './data.js';
 
 // Генерация информации о комментарии
