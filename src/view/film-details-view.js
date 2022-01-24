@@ -52,10 +52,21 @@ const createFilmDetailsEmojiTemplate = (emoji) => (
   </label>`
 );
 
+const createFilmDetailsControlsTemplate = ({watchlist, alreadyWatched, favorite}) => {
+  const controlButtonClass = 'film-details__control-button';
+
+  return (
+    `<button type="button" class="${controlButtonClass} ${controlButtonClass}--watchlist ${watchlist ? `${controlButtonClass}--active` : ''}" id="watchlist" name="watchlist">Add to watchlist</button>
+    <button type="button" class="${controlButtonClass} ${controlButtonClass}--watched ${alreadyWatched ? `${controlButtonClass}--active` : ''}" id="watched" name="watched">Already watched</button>
+    <button type="button" class="${controlButtonClass} ${controlButtonClass}--favorite ${favorite ? `${controlButtonClass}--active` : ''}" id="favorite" name="favorite">Add to favorites</button>`
+  );
+
+};
+
 const createFilmDetailsEmojiListTemplate = () => getListTemplate(EMOTIONS, createFilmDetailsEmojiTemplate);
 
 const createFilmDetailsTemplate = (movie) => {
-  const {filmInfo, comments} = movie;
+  const {filmInfo, comments, userDetails} = movie;
   const {
     description,
     poster,
@@ -69,6 +80,8 @@ const createFilmDetailsTemplate = (movie) => {
     writers,
     actors
   } = filmInfo;
+
+  //const {watchlist, alreadyWatched, favorite} = userDetails;
   const {date, releaseCountry} = release;
 
   return (
@@ -114,9 +127,9 @@ const createFilmDetailsTemplate = (movie) => {
       </div>
 
       <section class="film-details__controls">
-        <button type="button" class="film-details__control-button film-details__control-button--watchlist" id="watchlist" name="watchlist">Add to watchlist</button>
-        <button type="button" class="film-details__control-button film-details__control-button--active film-details__control-button--watched" id="watched" name="watched">Already watched</button>
-        <button type="button" class="film-details__control-button film-details__control-button--favorite" id="favorite" name="favorite">Add to favorites</button>
+        ${createFilmDetailsControlsTemplate(userDetails)}
+
+
       </section>
     </div>
 
@@ -157,6 +170,36 @@ export default class FilmDetailsView extends AbstractView{
 
   get template() {
     return createFilmDetailsTemplate(this.#movie);
+  }
+
+  setFavoriteClickHandler = (callback) => {
+    this._callback.favoriteClick = callback;
+    this.element.querySelector('#favorite').addEventListener('click', this.#favoriteClickHandler);
+  }
+
+  #favoriteClickHandler = (evt) => {
+    evt.preventDefault();
+    this._callback.favoriteClick();
+  }
+
+  setWatchedClickHandler = (callback) => {
+    this._callback.watchedClick = callback;
+    this.element.querySelector('#watched').addEventListener('click', this.#watchedClickHandler);
+  }
+
+  #watchedClickHandler = (evt) => {
+    evt.preventDefault();
+    this._callback.watchedClick();
+  }
+
+  setWatchlistClickHandler = (callback) => {
+    this._callback.watchlistClick = callback;
+    this.element.querySelector('#watchlist').addEventListener('click', this.#watchlistClickHandler);
+  }
+
+  #watchlistClickHandler = (evt) => {
+    evt.preventDefault();
+    this._callback.watchlistClick();
   }
 
   setClickHandler = (callback) => {

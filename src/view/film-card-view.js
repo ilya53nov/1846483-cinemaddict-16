@@ -8,7 +8,7 @@ dayjs.extend(duration);
 const MAX_LENGTH_DESCRIPTION = 140;
 
 const createFilmCardTemplate = (movie) => {
-  const {filmInfo, comments} = movie;
+  const {filmInfo, comments, userDetails} = movie;
   const {description, poster, title, totalRating, genre, runtime, release} = filmInfo;
   const {date} = release;
 
@@ -26,7 +26,7 @@ const createFilmCardTemplate = (movie) => {
       <p class="film-card__description">${description.length > MAX_LENGTH_DESCRIPTION ? `${description.substring(0, MAX_LENGTH_DESCRIPTION - 1)}...` : description}</p>
       <span class="film-card__comments">${comments.length} comments</span>
     </a>
-    ${createFilmCardControlsTemplate()}
+    ${createFilmCardControlsTemplate(userDetails)}
   </article>`);
 };
 
@@ -42,6 +42,36 @@ export default class FilmCardView extends AbstractView{
     return createFilmCardTemplate(this.#movie);
   }
 
+  setFavoriteClickHandler = (callback) => {
+    this._callback.favoriteClick = callback;
+    this.element.querySelector('.film-card__controls-item--favorite').addEventListener('click', this.#favoriteClickHandler);
+  }
+
+  #favoriteClickHandler = (evt) => {
+    evt.preventDefault();
+    this._callback.favoriteClick();
+  }
+
+  setWatchedClickHandler = (callback) => {
+    this._callback.watchedClick = callback;
+    this.element.querySelector('.film-card__controls-item--mark-as-watched').addEventListener('click', this.#watchedClickHandler);
+  }
+
+  #watchedClickHandler = (evt) => {
+    evt.preventDefault();
+    this._callback.watchedClick();
+  }
+
+  setWatchlistClickHandler = (callback) => {
+    this._callback.watchlistClick = callback;
+    this.element.querySelector('.film-card__controls-item--add-to-watchlist').addEventListener('click', this.#watchlistClickHandler);
+  }
+
+  #watchlistClickHandler = (evt) => {
+    evt.preventDefault();
+    this._callback.watchlistClick();
+  }
+
   setClickHandler = (callback) => {
     this._callback.click = callback;
     this.element.addEventListener('click', this.#clickHandler);
@@ -51,4 +81,5 @@ export default class FilmCardView extends AbstractView{
     evt.preventDefault();
     this._callback.click();
   }
+
 }
