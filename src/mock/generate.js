@@ -1,5 +1,6 @@
 import { getRandomInteger, getRandomFloat, getRandomDate, getRandomItem, getRandomItems } from '../utils/utils.js';
 import { DESCRIPTION, FEEDBACKS, AUTHORS, EMOTIONS, POSTERS, TITLES, COUNTRIES, GENRES, DIRECTORS, WRITERS, ACTORS } from './data.js';
+import {nanoid} from 'nanoid';
 
 // Генерация информации о комментарии
 const generateComment = () => ({
@@ -67,6 +68,7 @@ const generateUserDetails = () => ({
 
 // Генерация фильма
 export const generateMovie = () => ({
+  id: nanoid(),
   comments: Array.from({length: getRandomInteger(0, 5)}, generateComment),
   filmInfo: generateFilmInfo(),
   userDetails: generateUserDetails(),
