@@ -36,3 +36,24 @@ export const getListTemplate = (items, template) => (
     .map((item) => template(item))
     .join('')
 );
+
+export const getHistoryFilterCount = (filtersItem) => {
+  const historyFilter = filtersItem.filter(({name}) => name === 'History');
+
+  return historyFilter[0].count;
+};
+
+export const updateItem = (items, update) => {
+  const index = items.findIndex((item) => item.id === update.id);
+
+  if (index === -1) {
+    return items;
+  }
+
+  return [
+    ...items.slice(0, index),
+    update,
+    ...items.slice(index + 1),
+  ];
+};
+
