@@ -1,4 +1,4 @@
-import AbstractView from './abstract-view.js';
+import SmartView from './smart-view.js';
 import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
 import { getListTemplate } from '../utils/utils.js';
@@ -45,28 +45,32 @@ const createFilmDetailsTableRowTemplate = (term, cell) => (
   </tr>`
 );
 
-const createFilmDetailsEmojiTemplate = (emoji) => (
-  `<input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-${emoji}" value="${emoji}">
+const createFilmDetailsEmojiTemplate = (emoji, selectedEmoji) => (
+  `<input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-${emoji}" value="${emoji}" ${emoji === selectedEmoji ? 'checked = true' : ''}>
   <label class="film-details__emoji-label" for="emoji-${emoji}">
     <img src="./images/emoji/${emoji}.png" width="30" height="30" alt="emoji">
   </label>`
 );
-
-const createFilmDetailsControlsTemplate = ({watchlist, alreadyWatched, favorite}) => {
+//{watchlist, alreadyWatched, favorite}
+const createFilmDetailsControlsTemplate = ({isFavorite, isWatched, isWatchlist}) => {
   const controlButtonClass = 'film-details__control-button';
 
   return (
-    `<button type="button" class="${controlButtonClass} ${controlButtonClass}--watchlist ${watchlist ? `${controlButtonClass}--active` : ''}" id="watchlist" name="watchlist">Add to watchlist</button>
-    <button type="button" class="${controlButtonClass} ${controlButtonClass}--watched ${alreadyWatched ? `${controlButtonClass}--active` : ''}" id="watched" name="watched">Already watched</button>
-    <button type="button" class="${controlButtonClass} ${controlButtonClass}--favorite ${favorite ? `${controlButtonClass}--active` : ''}" id="favorite" name="favorite">Add to favorites</button>`
+    `<button type="button" class="${controlButtonClass} ${controlButtonClass}--watchlist ${isWatchlist ? `${controlButtonClass}--active` : ''}" id="watchlist" name="watchlist">Add to watchlist</button>
+    <button type="button" class="${controlButtonClass} ${controlButtonClass}--watched ${isWatched ? `${controlButtonClass}--active` : ''}" id="watched" name="watched">Already watched</button>
+    <button type="button" class="${controlButtonClass} ${controlButtonClass}--favorite ${isFavorite ? `${controlButtonClass}--active` : ''}" id="favorite" name="favorite">Add to favorites</button>`
   );
 
 };
 
-const createFilmDetailsEmojiListTemplate = () => getListTemplate(EMOTIONS, createFilmDetailsEmojiTemplate);
+const createFilmDetailsEmojiListTemplate = (selectedEmoji) => ( //getListTemplate(EMOTIONS, createFilmDetailsEmojiTemplate);
+  EMOTIONS
+    .map((emotion) => createFilmDetailsEmojiTemplate(emotion, selectedEmoji))
+    .join('')
+);
 
-const createFilmDetailsTemplate = (movie) => {
-  const {filmInfo, comments, userDetails} = movie;
+const createFilmDetailsTemplate = (data) => {
+  const {filmInfo, comments, userDetails, emoji, isFavorite, isWatched, isWatchlist} = data;
   const {
     description,
     poster,
@@ -127,7 +131,7 @@ const createFilmDetailsTemplate = (movie) => {
       </div>
 
       <section class="film-details__controls">
-        ${createFilmDetailsControlsTemplate(userDetails)}
+        ${createFilmDetailsControlsTemplate({isFavorite, isWatched, isWatchlist})}
 
 
       </section>
@@ -144,14 +148,16 @@ const createFilmDetailsTemplate = (movie) => {
         </ul>
 
         <div class="film-details__new-comment">
-          <div class="film-details__add-emoji-label"></div>
+          <div class="film-details__add-emoji-label">
+            ${emoji ? `<img src="images/emoji/${emoji}.png" width="55" height="55" alt="emoji-${emoji}"></img>` : ''}
+          </div>
 
           <label class="film-details__comment-label">
             <textarea class="film-details__comment-input" placeholder="Select reaction below and write comment here" name="comment"></textarea>
           </label>
 
           <div class="film-details__emoji-list">
-          ${createFilmDetailsEmojiListTemplate()}
+          ${createFilmDetailsEmojiListTemplate(emoji)}
           </div>
         </div>
       </section>
@@ -160,46 +166,32 @@ const createFilmDetailsTemplate = (movie) => {
 </section>`);
 };
 
-export default class FilmDetailsView extends AbstractView{
+export default class FilmDetailsView extends SmartView{
   #movie = null;
+  #scrollTop = null;
+  #changeData = null;
 
-  constructor(movie){
+  constructor(movie, changeData){
     super();
-    this.#movie = movie;
+    this.#changeData = changeData;
+    this._data = FilmDetailsView.parseMovieToData(movie);
+    this.#setInnerHandlers();
   }
 
   get template() {
-    return createFilmDetailsTemplate(this.#movie);
+    return createFilmDetailsTemplate(this._data);//this.#movie
   }
 
-  setFavoriteClickHandler = (callback) => {
-    this._callback.favoriteClick = callback;
-    this.element.querySelector('#favorite').addEventListener('click', this.#favoriteClickHandler);
+  getScrollTop = () => this.#scrollTop;
+
+  setScrollHandler = (callback) => {
+    this._callback.scroll = callback;
+    this.element.addEventListener('scroll', this.#scrollHandler);
   }
 
-  #favoriteClickHandler = (evt) => {
-    evt.preventDefault();
-    this._callback.favoriteClick();
-  }
-
-  setWatchedClickHandler = (callback) => {
-    this._callback.watchedClick = callback;
-    this.element.querySelector('#watched').addEventListener('click', this.#watchedClickHandler);
-  }
-
-  #watchedClickHandler = (evt) => {
-    evt.preventDefault();
-    this._callback.watchedClick();
-  }
-
-  setWatchlistClickHandler = (callback) => {
-    this._callback.watchlistClick = callback;
-    this.element.querySelector('#watchlist').addEventListener('click', this.#watchlistClickHandler);
-  }
-
-  #watchlistClickHandler = (evt) => {
-    evt.preventDefault();
-    this._callback.watchlistClick();
+  #scrollHandler = () => {
+    this.#scrollTop = this.element.scrollTop;
+    this._callback.scroll();
   }
 
   setClickHandler = (callback) => {
@@ -211,4 +203,54 @@ export default class FilmDetailsView extends AbstractView{
     evt.preventDefault();
     this._callback.click();
   }
+
+  setEmojiClickHandler = (callback) => {
+    this._callback.emojiClick = callback;
+    this.element.querySelector('.film-details__emoji-list').addEventListener('click', this.#emojiClickHandler);
+  }
+
+  #emojiClickHandler = (evt) => {
+    if (evt.target.classList.contains('film-details__emoji-item')) {
+      this.updateData({emoji: evt.target.value});
+      //TODO
+    }
+  }
+
+  #watchedToggleHandler = (evt) => {
+    evt.preventDefault();
+    this.updateData({isWatched: !this._data.isWatched});
+    this.#changeData({...this._data, ...this._data.userDetails.alreadyWatched = !this._data.userDetails.alreadyWatched});
+  }
+
+  #watchlistTogglekHandler = (evt) => {
+    evt.preventDefault();
+    this.updateData({isWatchlist: !this._data.isWatchlist});
+    this.#changeData({...this._data, ...this._data.userDetails.watchlist = !this._data.userDetails.watchlist});
+  }
+
+  #favoriteToggleHandler = (evt) => {
+    evt.preventDefault();
+    this.updateData({isFavorite: !this._data.isFavorite});
+    this.#changeData({...this._data, ...this._data.userDetails.favorite = !this._data.userDetails.favorite});
+  }
+
+  #setInnerHandlers = () => {
+    this.element.querySelector('#watched').addEventListener('click', this.#watchedToggleHandler);
+    this.element.querySelector('#watchlist').addEventListener('click', this.#watchlistTogglekHandler);
+    this.element.querySelector('#favorite').addEventListener('click', this.#favoriteToggleHandler);
+    this.element.addEventListener('scroll', this.#scrollHandler);
+    this.element.querySelector('.film-details__emoji-list').addEventListener('click', this.#emojiClickHandler);
+  }
+
+  restoreHandlers = () => {
+    this.#setInnerHandlers();
+  }
+
+  static parseMovieToData = (movie) => ({
+    ...movie,
+    emoji: '',
+    isWatched: movie.userDetails.alreadyWatched,
+    isWatchlist: movie.userDetails.watchlist,
+    isFavorite: movie.userDetails.favorite,
+  });
 }
