@@ -104,7 +104,7 @@ export default class MoviePresenter {
 
 
     this.#moviePopupComponent.setScrollHandler(this.#handleScroll);
-    this.#moviePopupComponent.setClickHandler(this.#handleClosePopup);
+    //this.#moviePopupComponent.setClickHandler(this.#handleClosePopup);
 
     render(footer, this.#moviePopupComponent, RenderPosition.AFTEREND);
 

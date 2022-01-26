@@ -2,6 +2,7 @@ import SmartView from './smart-view.js';
 import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
 import { getListTemplate } from '../utils/utils.js';
+import {isEscapeKey} from '../utils/utils.js';
 
 dayjs.extend(duration);
 
@@ -194,16 +195,6 @@ export default class FilmDetailsView extends SmartView{
     this._callback.scroll();
   }
 
-  setClickHandler = (callback) => {
-    this._callback.click = callback;
-    this.element.querySelector('.film-details__close-btn').addEventListener('click', this.#clickHandler);
-  }
-
-  #clickHandler = (evt) => {
-    evt.preventDefault();
-    this._callback.click();
-  }
-
   setEmojiClickHandler = (callback) => {
     this._callback.emojiClick = callback;
     this.element.querySelector('.film-details__emoji-list').addEventListener('click', this.#emojiClickHandler);
@@ -234,12 +225,25 @@ export default class FilmDetailsView extends SmartView{
     this.#changeData({...this._data, ...this._data.userDetails.favorite = !this._data.userDetails.favorite});
   }
 
+  #escKeyDownHandler = (evt) => {
+    if (isEscapeKey(evt)) {
+      this.#handleClosePopup();
+    }
+  }
+
+  #handleClosePopup = () => {
+    document.body.className = '';
+    this.element.remove();
+    document.removeEventListener('keydown', this.#escKeyDownHandler);
+  }
+
   #setInnerHandlers = () => {
     this.element.querySelector('#watched').addEventListener('click', this.#watchedToggleHandler);
     this.element.querySelector('#watchlist').addEventListener('click', this.#watchlistTogglekHandler);
     this.element.querySelector('#favorite').addEventListener('click', this.#favoriteToggleHandler);
     this.element.addEventListener('scroll', this.#scrollHandler);
     this.element.querySelector('.film-details__emoji-list').addEventListener('click', this.#emojiClickHandler);
+    this.element.querySelector('.film-details__close-btn').addEventListener('click', this.#handleClosePopup);
   }
 
   restoreHandlers = () => {
