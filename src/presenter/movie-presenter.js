@@ -19,6 +19,7 @@ export default class MoviePresenter {
 
   #movieComponent = null;
   #moviePopupComponent = null;
+  #scrollTopMoviePopup = null;
 
   #movie = null;
   #mode = Mode.DEFAULT;
@@ -36,7 +37,7 @@ export default class MoviePresenter {
     const prevMoviePopupComponent = this.#moviePopupComponent;
 
     this.#movieComponent = new FilmCardView(movie);
-    this.#moviePopupComponent = new FilmDetailsView(movie);
+    this.#moviePopupComponent = new FilmDetailsView(movie, this.#changeData);
 
     this.#movieComponent.setClickHandler(this.#handleShowPopup);
 
@@ -62,6 +63,7 @@ export default class MoviePresenter {
       render(prevMovieComponent, this.#movieComponent, RenderPosition.AFTEREND);
       remove(prevMovieComponent);
     }
+
 
   }
 
@@ -100,19 +102,27 @@ export default class MoviePresenter {
       remove(popup.showed);
     }
 
+
+    this.#moviePopupComponent.setScrollHandler(this.#handleScroll);
+    this.#moviePopupComponent.setClickHandler(this.#handleClosePopup);
+
     render(footer, this.#moviePopupComponent, RenderPosition.AFTEREND);
 
-    this.#moviePopupComponent.setClickHandler(this.#handleClosePopup);
-    this.#moviePopupComponent.setFavoriteClickHandler(this.#handleFavoriteClick);
-    this.#moviePopupComponent.setWatchedClickHandler(this.#handleWatchedClick);
-    this.#moviePopupComponent.setWatchlistClickHandler(this.#handleWatchlistClick);
+    if (this.#scrollTopMoviePopup) {
+      this.#moviePopupComponent.element.scroll(0, this.#scrollTopMoviePopup);
+    }
 
+    this.#moviePopupComponent.restoreHandlers();
 
     document.addEventListener('keydown', this.#escKeyDownHandler);
 
     popup.showed = this.#moviePopupComponent;
 
     this.#mode = Mode.POPUP;
+  }
+
+  #handleScroll = () => {
+    this.#scrollTopMoviePopup = this.#moviePopupComponent.getScrollTop();
   }
 
   #handleFavoriteClick = () => {
@@ -126,5 +136,4 @@ export default class MoviePresenter {
   #handleWatchlistClick = () => {
     this.#changeData({...this.#movie, ...this.#movie.userDetails.watchlist = !this.#movie.userDetails.watchlist});
   }
-
 }
