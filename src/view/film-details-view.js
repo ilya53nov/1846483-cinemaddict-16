@@ -70,7 +70,7 @@ const createFilmDetailsEmojiListTemplate = (selectedEmoji) => ( //getListTemplat
 );
 
 const createFilmDetailsTemplate = (data) => {
-  const {filmInfo, comments, userDetails, emoji, isFavorite, isWatched, isWatchlist} = data;
+  const {filmInfo, comments, emoji, isFavorite, isWatched, isWatchlist} = data;
   const {
     description,
     poster,
