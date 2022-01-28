@@ -24,6 +24,10 @@ export const getRandomItems = (items) => items.slice(0, getRandomInteger(1, item
 
 export const isEscapeKey = (evt) => evt.key === 'Escape' || evt.key === 'Esc';
 
+export const isCtrlKey = (evt) => evt.key === 'Control';
+
+export const isEnterKey = (evt) => evt.key === 'Enter';
+
 export const getCreatedElement = (elementName, className) => {
   const element = document.createElement(`${elementName}`);
   element.classList.add(`${className}`);
@@ -42,18 +46,3 @@ export const getHistoryFilterCount = (filtersItem) => {
 
   return historyFilter[0].count;
 };
-
-export const updateItem = (items, update) => {
-  const index = items.findIndex((item) => item.id === update.id);
-
-  if (index === -1) {
-    return items;
-  }
-
-  return [
-    ...items.slice(0, index),
-    update,
-    ...items.slice(index + 1),
-  ];
-};
-
