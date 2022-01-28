@@ -1,8 +1,11 @@
+import he from 'he';
 import SmartView from './smart-view.js';
 import dayjs from 'dayjs';
+import {nanoid} from 'nanoid';
 import duration from 'dayjs/plugin/duration';
-import { getListTemplate } from '../utils/utils.js';
-import {isEscapeKey} from '../utils/utils.js';
+import {getListTemplate} from '../utils/utils.js';
+import {isEscapeKey, isCtrlKey, isEnterKey} from '../utils/utils.js';
+import {UserAction, UpdateType} from '../const.js';
 
 dayjs.extend(duration);
 
@@ -14,7 +17,7 @@ const EMOTIONS = [
 ];
 
 const createFilmDetailsCommentTemplate = (comments) => {
-  const {emotion, comment, author, date} = comments;
+  const {emotion, comment, author, date, id} = comments;
 
   return (
     `<li class="film-details__comment">
@@ -22,11 +25,11 @@ const createFilmDetailsCommentTemplate = (comments) => {
       <img src="./images/emoji/${emotion}.png" width="55" height="55" alt="emoji-${emotion}">
     </span>
     <div>
-      <p class="film-details__comment-text">${comment}</p>
+      <p class="film-details__comment-text">${he.encode(comment)}</p>
       <p class="film-details__comment-info">
         <span class="film-details__comment-author">${author}</span>
         <span class="film-details__comment-day">${dayjs(date).format('YYYY/MM/DD HH:MM')}</span>
-        <button class="film-details__comment-delete">Delete</button>
+        <button id="${id}" class="film-details__comment-delete">Delete</button>
       </p>
     </div>
   </li>`
@@ -150,7 +153,7 @@ const createFilmDetailsTemplate = (data) => {
 
         <div class="film-details__new-comment">
           <div class="film-details__add-emoji-label">
-            ${emoji ? `<img src="images/emoji/${emoji}.png" width="55" height="55" alt="emoji-${emoji}"></img>` : ''}
+            ${emoji ? `<img src="images/emoji/${emoji}.png" width="55" height="55" alt="emoji-${emoji}" id="${emoji}"></img>` : ''}
           </div>
 
           <label class="film-details__comment-label">
@@ -165,6 +168,16 @@ const createFilmDetailsTemplate = (data) => {
     </div>
   </form>
 </section>`);
+};
+
+const keyHandler = {
+  control : {
+    down: false,
+  },
+
+  enter : {
+    down: false,
+  },
 };
 
 export default class FilmDetailsView extends SmartView{
@@ -210,19 +223,31 @@ export default class FilmDetailsView extends SmartView{
   #watchedToggleHandler = (evt) => {
     evt.preventDefault();
     this.updateData({isWatched: !this._data.isWatched});
-    this.#changeData({...this._data, ...this._data.userDetails.alreadyWatched = !this._data.userDetails.alreadyWatched});
+    this.#changeData(
+      UserAction.UPDATE_MOVIE,
+      UpdateType.PATCH,
+      {...this._data, ...this._data.userDetails.alreadyWatched = !this._data.userDetails.alreadyWatched}
+    );
   }
 
   #watchlistTogglekHandler = (evt) => {
     evt.preventDefault();
     this.updateData({isWatchlist: !this._data.isWatchlist});
-    this.#changeData({...this._data, ...this._data.userDetails.watchlist = !this._data.userDetails.watchlist});
+    this.#changeData(
+      UserAction.UPDATE_MOVIE,
+      UpdateType.PATCH,
+      {...this._data, ...this._data.userDetails.watchlist = !this._data.userDetails.watchlist}
+    );
   }
 
   #favoriteToggleHandler = (evt) => {
     evt.preventDefault();
     this.updateData({isFavorite: !this._data.isFavorite});
-    this.#changeData({...this._data, ...this._data.userDetails.favorite = !this._data.userDetails.favorite});
+    this.#changeData(
+      UserAction.UPDATE_MOVIE,
+      UpdateType.PATCH,
+      {...this._data, ...this._data.userDetails.favorite = !this._data.userDetails.favorite}
+    );
   }
 
   #escKeyDownHandler = (evt) => {
@@ -231,10 +256,90 @@ export default class FilmDetailsView extends SmartView{
     }
   }
 
+  #keyDownHandler = (evt) => {
+    if (isCtrlKey(evt)) {
+      keyHandler.control.down = true;
+    }
+
+    if (isEnterKey(evt)) {
+      keyHandler.enter.down = true;
+    }
+
+    if (isEscapeKey(evt)) {
+      this.#handleClosePopup();
+    }
+
+    if (keyHandler.control.down && keyHandler.enter.down) {
+      keyHandler.control.down = false;
+      keyHandler.enter.down = false;
+      this.#submitForm();
+    }
+
+  }
+
+  #keyUpHandler = (evt) => {
+    if (isCtrlKey(evt)) {
+      keyHandler.control.down = false;
+    }
+
+    if (isEnterKey(evt)) {
+      keyHandler.enter.down = false;
+    }
+  }
+
+  #submitForm = () => {
+    const comment = this.element.querySelector('.film-details__comment-input').value;
+    const emotion = this.element.querySelector('.film-details__add-emoji-label').querySelector('img').id;
+
+    if (!comment || !emotion) {
+      return;
+    }
+
+    const author = 'mock';
+    const id = nanoid();
+    const date = dayjs();
+
+    const newComment = {
+      id: id,
+      author: author,
+      comment: comment,
+      date: date,
+      emotion: emotion,
+    };
+
+    this.#changeData(
+      UserAction.ADD_COMMENT,
+      UpdateType.PATCH,
+      {...this._data, newComment}
+    );
+  }
+
   #handleClosePopup = () => {
     document.body.className = '';
     this.element.remove();
     document.removeEventListener('keydown', this.#escKeyDownHandler);
+  }
+
+  #handleDeleteComment = (evt) => {
+    evt.preventDefault();
+
+    if (evt.target.tagName === 'BUTTON') {
+
+      this.#changeData(
+        UserAction.DELETE_COMMENT,
+        UpdateType.PATCH,
+        {...this._data, deleteComment: evt.target.id}
+      );
+
+    }
+  }
+
+  setFormSubmitHandler = () => {
+
+  }
+
+  #formSubmitHandler = (evt) => {
+    evt.preventDefault();
   }
 
   #setInnerHandlers = () => {
@@ -244,6 +349,11 @@ export default class FilmDetailsView extends SmartView{
     this.element.addEventListener('scroll', this.#scrollHandler);
     this.element.querySelector('.film-details__emoji-list').addEventListener('click', this.#emojiClickHandler);
     this.element.querySelector('.film-details__close-btn').addEventListener('click', this.#handleClosePopup);
+    this.element.querySelector('.film-details__comments-list').addEventListener('click', this.#handleDeleteComment);
+    this.element.addEventListener('keydown', this.#keyDownHandler);
+    this.element.addEventListener('keyup', this.#keyUpHandler);
+    //this.element.querySelector('.film-details__comment-input').addEventListener('keydown', this.#ctrlAndEnterDownHandler);
+    //document.addEventListener('keypress', this.#ctrlAndEnterDownHandler);
   }
 
   restoreHandlers = () => {

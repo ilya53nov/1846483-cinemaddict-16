@@ -2,6 +2,7 @@ import FilmCardView from '../view/film-card-view.js';
 import FilmDetailsView from '../view/film-details-view.js';
 import {render, RenderPosition, remove} from '../utils/render.js';
 import {isEscapeKey} from '../utils/utils.js';
+import { UserAction, UpdateType } from '../const.js';
 
 const Mode = {
   DEFAULT: 'DEFAULT',
@@ -52,9 +53,9 @@ export default class MoviePresenter {
 
     if (this.#mode === Mode.DEFAULT) {
       this.#handleClosePopup();
+
       render(prevMovieComponent, this.#movieComponent, RenderPosition.AFTEREND);
       remove(prevMovieComponent);
-
     }
 
     if (this.#mode === Mode.POPUP) {
@@ -63,8 +64,6 @@ export default class MoviePresenter {
       render(prevMovieComponent, this.#movieComponent, RenderPosition.AFTEREND);
       remove(prevMovieComponent);
     }
-
-
   }
 
   destroy  = () => {
@@ -85,7 +84,6 @@ export default class MoviePresenter {
   }
 
   #handleClosePopup = () => {
-
     document.body.className = '';
     remove(this.#moviePopupComponent);
 
@@ -102,9 +100,7 @@ export default class MoviePresenter {
       remove(popup.showed);
     }
 
-
     this.#moviePopupComponent.setScrollHandler(this.#handleScroll);
-    //this.#moviePopupComponent.setClickHandler(this.#handleClosePopup);
 
     render(footer, this.#moviePopupComponent, RenderPosition.AFTEREND);
 
@@ -126,14 +122,26 @@ export default class MoviePresenter {
   }
 
   #handleFavoriteClick = () => {
-    this.#changeData({...this.#movie, ...this.#movie.userDetails.favorite = !this.#movie.userDetails.favorite});
+    this.#changeData(
+      UserAction.UPDATE_MOVIE,
+      UpdateType.MINOR,
+      {...this.#movie, ...this.#movie.userDetails.favorite = !this.#movie.userDetails.favorite}
+    );
   }
 
   #handleWatchedClick = () => {
-    this.#changeData({...this.#movie, ...this.#movie.userDetails.alreadyWatched = !this.#movie.userDetails.alreadyWatched});
+    this.#changeData(
+      UserAction.UPDATE_MOVIE,
+      UpdateType.MINOR,
+      {...this.#movie, ...this.#movie.userDetails.alreadyWatched = !this.#movie.userDetails.alreadyWatched}
+    );
   }
 
   #handleWatchlistClick = () => {
-    this.#changeData({...this.#movie, ...this.#movie.userDetails.watchlist = !this.#movie.userDetails.watchlist});
+    this.#changeData(
+      UserAction.UPDATE_MOVIE,
+      UpdateType.MINOR,
+      {...this.#movie, ...this.#movie.userDetails.watchlist = !this.#movie.userDetails.watchlist}
+    );
   }
 }
