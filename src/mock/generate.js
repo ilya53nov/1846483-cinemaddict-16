@@ -4,6 +4,7 @@ import {nanoid} from 'nanoid';
 
 // Генерация информации о комментарии
 const generateComment = () => ({
+  id: nanoid(),
   author: getRandomItem(AUTHORS),
   comment: getRandomItem(FEEDBACKS),
   date: getRandomDate(new Date(2020, 1, 1), new Date),
@@ -66,10 +67,15 @@ const generateUserDetails = () => ({
   favorite: Boolean(getRandomInteger(0, 1)),
 });
 
+//const generateComments = () => Array.from({length: 100}, generateComment);
+
+//export const comments = generateComments();
+
 // Генерация фильма
 export const generateMovie = () => ({
   id: nanoid(),
   comments: Array.from({length: getRandomInteger(0, 5)}, generateComment),
+  //commentsId:
   filmInfo: generateFilmInfo(),
   userDetails: generateUserDetails(),
 });
