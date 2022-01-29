@@ -58,9 +58,21 @@ export default class MovieListPresenter{
   init = () => {
     render(this.#movieListComponent, this.#movieListContainerComponent, RenderPosition.AFTERBEGIN);
     render(this.#movieSectionComponent, this.#movieListComponent, RenderPosition.BEFOREEND);
-    render(this.#mainContainer, this.#movieSectionComponent, RenderPosition.BEFOREEND);
+    render(this.#mainContainer, this.#movieSectionComponent, RenderPosition.AFTEREND);
+
+    this.#moviesModel.addObserver(this.#handleModelEvent);
+    this.#filterModel.addObserver(this.#handleModelEvent);
 
     this.#renderBoard();
+  }
+
+  destroy = () => {
+    this.#clearBoard({resetRenderedTaskCount: true, resetSortType: true});
+
+    remove(this.#movieListComponent);
+
+    this.#moviesModel.removeObserver(this.#handleModelEvent);
+    this.#filterModel.removeObserver(this.#handleModelEvent);
   }
 
   #handleModeChange = () => {
@@ -135,7 +147,7 @@ export default class MovieListPresenter{
     this.#sortComponent = new SortView(this.#currentSortType);
     this.#sortComponent.setSortTypeChangeHandler(this.#handleSortTypeChange);
 
-    render(this.#mainContainer, this.#sortComponent, RenderPosition.AFTERBEGIN);
+    render(this.#mainContainer, this.#sortComponent, RenderPosition.BEFOREEND);
   }
 
   #renderMovie = (movie) => {
@@ -146,24 +158,6 @@ export default class MovieListPresenter{
 
   #renderMovies = (movies) => {
     movies.forEach((movie) => this.#renderMovie(movie));
-  }
-
-  #clearMovieList = () => {
-    this.#moviePresenter.forEach((presenter) => presenter.destroy());
-    this.#moviePresenter.clear();
-    this.#renderedMovieCount = MOVIE_COUNT_PER_STEP;
-    remove(this.#showMoreButtonComponent);
-  }
-
-  #renderMovieList = () => {
-    const movieCount = this.movies.length;
-    const movies = this.movies.slice(0, Math.min(movieCount, MOVIE_COUNT_PER_STEP));
-
-    this.#renderMovies(movies);
-
-    if (movieCount > MOVIE_COUNT_PER_STEP) {
-      this.#renderShowMoreButton();
-    }
   }
 
   #handleShowMoreButtonClick = () => {
@@ -207,5 +201,4 @@ export default class MovieListPresenter{
       this.#renderShowMoreButton();
     }
   }
-
 }

@@ -352,8 +352,6 @@ export default class FilmDetailsView extends SmartView{
     this.element.querySelector('.film-details__comments-list').addEventListener('click', this.#handleDeleteComment);
     this.element.addEventListener('keydown', this.#keyDownHandler);
     this.element.addEventListener('keyup', this.#keyUpHandler);
-    //this.element.querySelector('.film-details__comment-input').addEventListener('keydown', this.#ctrlAndEnterDownHandler);
-    //document.addEventListener('keypress', this.#ctrlAndEnterDownHandler);
   }
 
   restoreHandlers = () => {

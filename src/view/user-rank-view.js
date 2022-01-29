@@ -1,24 +1,5 @@
 import AbstractView from './abstract-view.js';
-
-const userRanks = [
-  {
-    name: 'Novice',
-    min: 1,
-    max: 10,
-  },
-
-  {
-    name: 'Fun',
-    min: 11,
-    max: 20,
-  },
-
-  {
-    name: 'Movie Buff',
-    min: 21,
-    max: Infinity,
-  },
-];
+import { userRanks } from '../const.js';
 
 const getUserRank = (value) => {
   for (const {name, min, max} of userRanks) {
