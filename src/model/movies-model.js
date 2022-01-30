@@ -14,6 +14,10 @@ export default class MoviesModel extends AbstractObservable {
   updateMovie = (updateType, update) => {
     const index = this.#movies.findIndex((movie) => movie.id === update.id);
 
+    delete update.isWatched;
+    delete update.isWatchlist;
+    delete update.isFavorite;
+
     if (index === -1) {
       throw new Error('Can\'t update unexisting movie');
     }

@@ -74,7 +74,7 @@ const createFilmDetailsEmojiListTemplate = (selectedEmoji) => ( //getListTemplat
 );
 
 const createFilmDetailsTemplate = (data) => {
-  const {filmInfo, comments, emoji, isFavorite, isWatched, isWatchlist} = data;
+  const {filmInfo, comments, emoji, comment, isFavorite, isWatched, isWatchlist} = data;
   const {
     description,
     poster,
@@ -157,7 +157,7 @@ const createFilmDetailsTemplate = (data) => {
           </div>
 
           <label class="film-details__comment-label">
-            <textarea class="film-details__comment-input" placeholder="Select reaction below and write comment here" name="comment"></textarea>
+            <textarea class="film-details__comment-input" placeholder="Select reaction below and write comment here" name="comment">${comment ? comment : ''}</textarea>
           </label>
 
           <div class="film-details__emoji-list">
@@ -180,7 +180,7 @@ const keyHandler = {
   },
 };
 
-export default class FilmDetailsView extends SmartView{
+export default class MovieDetailsView extends SmartView{
   #movie = null;
   #scrollTop = null;
   #changeData = null;
@@ -188,7 +188,7 @@ export default class FilmDetailsView extends SmartView{
   constructor(movie, changeData){
     super();
     this.#changeData = changeData;
-    this._data = FilmDetailsView.parseMovieToData(movie);
+    this._data = movie;
     this.#setInnerHandlers();
   }
 
@@ -215,8 +215,8 @@ export default class FilmDetailsView extends SmartView{
 
   #emojiClickHandler = (evt) => {
     if (evt.target.classList.contains('film-details__emoji-item')) {
-      this.updateData({emoji: evt.target.value});
-      //TODO
+      const comment = this.element.querySelector('.film-details__comment-input').value;
+      this.updateData({emoji: evt.target.value, comment: comment});
     }
   }
 
@@ -307,6 +307,8 @@ export default class FilmDetailsView extends SmartView{
       emotion: emotion,
     };
 
+    MovieDetailsView.parseDataToMovie(this._data);
+
     this.#changeData(
       UserAction.ADD_COMMENT,
       UpdateType.PATCH,
@@ -343,6 +345,8 @@ export default class FilmDetailsView extends SmartView{
   }
 
   #setInnerHandlers = () => {
+    this._data = MovieDetailsView.parseMovieToData(this._data);
+
     this.element.querySelector('#watched').addEventListener('click', this.#watchedToggleHandler);
     this.element.querySelector('#watchlist').addEventListener('click', this.#watchlistTogglekHandler);
     this.element.querySelector('#favorite').addEventListener('click', this.#favoriteToggleHandler);
@@ -361,8 +365,14 @@ export default class FilmDetailsView extends SmartView{
   static parseMovieToData = (movie) => ({
     ...movie,
     emoji: '',
+    comment: '',
     isWatched: movie.userDetails.alreadyWatched,
     isWatchlist: movie.userDetails.watchlist,
     isFavorite: movie.userDetails.favorite,
   });
+
+  static parseDataToMovie = (data) => {
+    delete data.emoji;
+    delete data.comment;
+  }
 }

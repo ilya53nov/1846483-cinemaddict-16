@@ -1,5 +1,5 @@
-import FilmCardView from '../view/film-card-view.js';
-import FilmDetailsView from '../view/film-details-view.js';
+import MovieCardView from '../view/film-card-view.js';
+import MovieDetailsView from '../view/film-details-view.js';
 import {render, RenderPosition, remove} from '../utils/render.js';
 import {isEscapeKey} from '../utils/utils.js';
 import { UserAction, UpdateType } from '../const.js';
@@ -37,8 +37,8 @@ export default class MoviePresenter {
     const prevMovieComponent = this.#movieComponent;
     const prevMoviePopupComponent = this.#moviePopupComponent;
 
-    this.#movieComponent = new FilmCardView(movie);
-    this.#moviePopupComponent = new FilmDetailsView(movie, this.#changeData);
+    this.#movieComponent = new MovieCardView(movie);
+    this.#moviePopupComponent = new MovieDetailsView(movie, this.#changeData);
 
     this.#movieComponent.setClickHandler(this.#handleShowPopup);
 
