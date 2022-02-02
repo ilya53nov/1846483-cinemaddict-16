@@ -3,7 +3,6 @@ import {MenuItem} from '../const.js';
 
 const createNavigationTemplate = () => (
   `<nav class="main-navigation">
-
     <a href="#stats" class="main-navigation__additional" id=${MenuItem.STATISTICS}>Stats</a>
   </nav>`
 );

@@ -7,11 +7,11 @@ import {FilterTypeStatistics} from '../const.js';
 
 
 const renderChart = (statisticCtx, movies) => {
+  // TO DO
   const historyMovies = getGenreHistoryMovies(movies, 'genres', 'counts');
 
   const BAR_HEIGHT = 50;
 
-  // Обязательно рассчитайте высоту canvas, она зависит от количества элементов диаграммы
   statisticCtx.height = BAR_HEIGHT * historyMovies.genres.length;
 
   return new Chart(statisticCtx, {

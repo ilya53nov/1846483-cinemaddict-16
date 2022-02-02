@@ -1,13 +1,15 @@
 import he from 'he';
 import SmartView from './smart-view.js';
 import dayjs from 'dayjs';
-import {nanoid} from 'nanoid';
 import duration from 'dayjs/plugin/duration';
 import {getListTemplate} from '../utils/utils.js';
 import {isEscapeKey, isCtrlKey, isEnterKey} from '../utils/utils.js';
 import {UserAction, UpdateType} from '../const.js';
 
+
 dayjs.extend(duration);
+
+const SHAKE_ANIMATION_TIMEOUT = 600;
 
 const EMOTIONS = [
   'smile',
@@ -16,11 +18,12 @@ const EMOTIONS = [
   'angry'
 ];
 
-const createFilmDetailsCommentTemplate = (comments) => {
-  const {emotion, comment, author, date, id} = comments;
+const createFilmDetailsCommentTemplate = (loadedComments, deleteComment, isDeletingComment) => {
+
+  const {emotion, comment, author, date, id} = loadedComments;
 
   return (
-    `<li class="film-details__comment">
+    `<li ${deleteComment === id && isDeletingComment ? `data-id="${id}"` : ''} class="film-details__comment">
     <span class="film-details__comment-emoji">
       <img src="./images/emoji/${emotion}.png" width="55" height="55" alt="emoji-${emotion}">
     </span>
@@ -29,14 +32,24 @@ const createFilmDetailsCommentTemplate = (comments) => {
       <p class="film-details__comment-info">
         <span class="film-details__comment-author">${author}</span>
         <span class="film-details__comment-day">${dayjs(date).format('YYYY/MM/DD HH:MM')}</span>
-        <button id="${id}" class="film-details__comment-delete">Delete</button>
+        <button ${deleteComment === id && isDeletingComment ? 'disabled' : ''} id="${id}" class="film-details__comment-delete">${deleteComment === id && isDeletingComment ? 'Deleting...' : 'Delete'}</button>
       </p>
     </div>
   </li>`
   );
 };
 
-const createFilmDetailsCommentListTemplate = (comments) => getListTemplate(comments, createFilmDetailsCommentTemplate);
+const createFilmDetailsCommentListTemplate = (loadedComments, deleteComment, isDeletingComment) => {
+  const commentListTemplate = loadedComments
+    .map((comment) => createFilmDetailsCommentTemplate(comment, deleteComment, isDeletingComment))
+    .join('');
+
+  return (
+    `<ul class="film-details__comments-list">
+    ${commentListTemplate}
+    </ul>`
+  );
+};
 
 const createFilmDetailsGenreTemplate = (genre) => `<span class="film-details__genre">${genre}</span>`;
 
@@ -55,7 +68,7 @@ const createFilmDetailsEmojiTemplate = (emoji, selectedEmoji) => (
     <img src="./images/emoji/${emoji}.png" width="30" height="30" alt="emoji">
   </label>`
 );
-//{watchlist, alreadyWatched, favorite}
+
 const createFilmDetailsControlsTemplate = ({isFavorite, isWatched, isWatchlist}) => {
   const controlButtonClass = 'film-details__control-button';
 
@@ -74,7 +87,21 @@ const createFilmDetailsEmojiListTemplate = (selectedEmoji) => ( //getListTemplat
 );
 
 const createFilmDetailsTemplate = (data) => {
-  const {filmInfo, comments, emoji, comment, isFavorite, isWatched, isWatchlist} = data;
+
+  const {
+    filmInfo,
+    emoji,
+    loadedComments,
+    comments,
+    comment,
+    isLoadComments,
+    isFavorite,
+    isWatched,
+    isWatchlist,
+    deleteComment,
+    //isDisabled
+    isDeletingComment
+  } = data;
   const {
     description,
     poster,
@@ -89,7 +116,6 @@ const createFilmDetailsTemplate = (data) => {
     actors
   } = filmInfo;
 
-  //const {watchlist, alreadyWatched, favorite} = userDetails;
   const {date, releaseCountry} = release;
 
   return (
@@ -148,7 +174,8 @@ const createFilmDetailsTemplate = (data) => {
 
 
         <ul class="film-details__comments-list">
-        ${createFilmDetailsCommentListTemplate(comments)}
+        ${isLoadComments ? createFilmDetailsCommentListTemplate(loadedComments, deleteComment, isDeletingComment): '<p class="film-details__comment-text">Loading...</p>'}
+
         </ul>
 
         <div class="film-details__new-comment">
@@ -181,7 +208,6 @@ const keyHandler = {
 };
 
 export default class MovieDetailsView extends SmartView{
-  #movie = null;
   #scrollTop = null;
   #changeData = null;
 
@@ -194,6 +220,7 @@ export default class MovieDetailsView extends SmartView{
 
   get template() {
     return createFilmDetailsTemplate(this._data);//this.#movie
+
   }
 
   getScrollTop = () => this.#scrollTop;
@@ -289,30 +316,22 @@ export default class MovieDetailsView extends SmartView{
 
   #submitForm = () => {
     const comment = this.element.querySelector('.film-details__comment-input').value;
+    //todo
     const emotion = this.element.querySelector('.film-details__add-emoji-label').querySelector('img').id;
 
     if (!comment || !emotion) {
       return;
     }
 
-    const author = 'mock';
-    const id = nanoid();
-    const date = dayjs();
-
-    const newComment = {
-      id: id,
-      author: author,
+    const localComment = {
       comment: comment,
-      date: date,
       emotion: emotion,
     };
-
-    MovieDetailsView.parseDataToMovie(this._data);
 
     this.#changeData(
       UserAction.ADD_COMMENT,
       UpdateType.PATCH,
-      {...this._data, newComment}
+      {...this._data, localComment, ...this._data.emoji = emotion, ...this._data.comment = comment}
     );
   }
 
@@ -336,14 +355,6 @@ export default class MovieDetailsView extends SmartView{
     }
   }
 
-  setFormSubmitHandler = () => {
-
-  }
-
-  #formSubmitHandler = (evt) => {
-    evt.preventDefault();
-  }
-
   #setInnerHandlers = () => {
     this._data = MovieDetailsView.parseMovieToData(this._data);
 
@@ -362,6 +373,16 @@ export default class MovieDetailsView extends SmartView{
     this.#setInnerHandlers();
   }
 
+  snakeComment = (callback) => {
+    const commentElement = this.element.querySelector(`.film-details__comment[data-id="${this._data.deleteComment}"]`);
+
+    commentElement.style.animation = `shake ${SHAKE_ANIMATION_TIMEOUT / 1000}s`;
+    setTimeout(() => {
+      this.element.style.animation = '';
+      callback();
+    }, SHAKE_ANIMATION_TIMEOUT);
+  }
+
   static parseMovieToData = (movie) => ({
     ...movie,
     emoji: '',
@@ -369,10 +390,11 @@ export default class MovieDetailsView extends SmartView{
     isWatched: movie.userDetails.alreadyWatched,
     isWatchlist: movie.userDetails.watchlist,
     isFavorite: movie.userDetails.favorite,
+
   });
 
   static parseDataToMovie = (data) => {
-    delete data.emoji;
-    delete data.comment;
+    // TO DO
+    delete data.isDeletingComment;
   }
 }
