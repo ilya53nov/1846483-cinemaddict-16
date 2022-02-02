@@ -17,6 +17,8 @@ export default class SmartView extends AbstractView {
     this.updateElement();
   }
 
+  getData = () => this._data;
+
   updateElement = () => {
     const prevElement = this.element;
     const prevElementScrollTop = prevElement.scrollTop;
