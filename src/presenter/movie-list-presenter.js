@@ -1,5 +1,5 @@
 import {render, RenderPosition} from '../utils/render.js';
-import MoviePresenter from './movie-presenter.js';
+import MoviePresenter, {State as MoviePresenterViewState} from './movie-presenter.js';
 import MovieListView from '../view/film-list-view.js';
 import MovieListContainerView from '../view/film-list-container-view.js';
 import MovieSectionView from '../view/films-section-view.js';
@@ -9,6 +9,7 @@ import SortView from '../view/sort-view.js';
 import {SortType, UpdateType, UserAction, FilterType} from '../const.js';
 import {filter} from '../utils/filter.js';
 import NoMovieView from '../view/no-movie-view.js';
+import LoadingView from '../view/loading-view.js';
 
 const MOVIE_COUNT_PER_STEP = 5;
 
@@ -17,11 +18,13 @@ export default class MovieListPresenter{
   #moviesModel = null;
   #filterModel = null;
 
+
   #renderedMovieCount = MOVIE_COUNT_PER_STEP;
 
   #movieListComponent = new MovieListView();
   #movieListContainerComponent = new MovieListContainerView();
   #movieSectionComponent = new MovieSectionView();
+  #loadingComponent = new LoadingView();
   #noMovieComponent = null;
   #sortComponent = null;
   #showMoreButtonComponent = null;
@@ -29,6 +32,7 @@ export default class MovieListPresenter{
   #moviePresenter = new Map();
   #currentSortType = SortType.DEFAULT;
   #filterType = FilterType.ALL;
+  #isLoading = true;
 
   constructor(mainContainer, moviesModel, filterModel) {
     this.#mainContainer = mainContainer;
@@ -79,16 +83,32 @@ export default class MovieListPresenter{
     this.#moviePresenter.forEach((presenter) => presenter.resetView());
   }
 
-  #handleViewAction = (actionType, updateType, update) => {
+  #handleViewAction = async (actionType, updateType, update) => {
     switch (actionType) {
       case UserAction.UPDATE_MOVIE:
-        this.#moviesModel.updateMovie(updateType, update);
+        try {
+          await this.#moviesModel.updateMovie(updateType, update);
+        } catch {
+          // todo
+          this.#moviePresenter.get(update.id).setViewState(MoviePresenterViewState.ABORTING, update);
+        }
         break;
       case UserAction.ADD_COMMENT:
-        this.#moviesModel.addComment(updateType, update);
+        this.#moviePresenter.get(update.id).setViewState(MoviePresenterViewState.ADDING_COMMENT, update);
+        try {
+          await this.#moviesModel.addComment(updateType, update);
+        } catch {
+          this.#moviePresenter.get(update.id).setViewState(MoviePresenterViewState.ABORTING, update);
+        }
         break;
       case UserAction.DELETE_COMMENT:
-        this.#moviesModel.deleteComment(updateType, update);
+        this.#moviePresenter.get(update.id).setViewState(MoviePresenterViewState.DELETING_COMMENT, update);
+        try {
+          await this.#moviesModel.deleteComment(updateType, update);
+        } catch {
+          this.#moviePresenter.get(update.id).setViewState(MoviePresenterViewState.ABORTING, update);
+        }
+
         break;
     }
   }
@@ -106,7 +126,16 @@ export default class MovieListPresenter{
         this.#clearBoard({resetRenderedMovieCount: true, resetSortType: true});
         this.#renderBoard();
         break;
+      case UpdateType.INIT:
+        this.#isLoading = false;
+        remove(this.#loadingComponent);
+        this.#renderBoard();
+        break;
     }
+  }
+
+  #renderLoading = () => {
+    render(this.#movieListComponent, this.#loadingComponent, RenderPosition.AFTERBEGIN);
   }
 
   #clearBoard = ({resetRenderedMovieCount = false, resetSortType = false} = {}) => {
@@ -116,6 +145,7 @@ export default class MovieListPresenter{
     this.#moviePresenter.clear();
 
     remove(this.#sortComponent);
+    remove(this.#loadingComponent);
     remove(this.#showMoreButtonComponent);
 
     if (this.#noMovieComponent) {
@@ -186,6 +216,10 @@ export default class MovieListPresenter{
   }
 
   #renderBoard = () => {
+    if (this.#isLoading) {
+      this.#renderLoading();
+      return;
+    }
     const movies = this.movies;
     const movieCount = movies.length;
 

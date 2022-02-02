@@ -2,11 +2,18 @@ import MovieCardView from '../view/film-card-view.js';
 import MovieDetailsView from '../view/film-details-view.js';
 import {render, RenderPosition, remove} from '../utils/render.js';
 import {isEscapeKey} from '../utils/utils.js';
-import { UserAction, UpdateType } from '../const.js';
+import { UserAction, UpdateType, Server } from '../const.js';
+import ApiService from '../api-service.js';
 
 const Mode = {
   DEFAULT: 'DEFAULT',
   POPUP: 'POPUP',
+};
+
+export const State = {
+  ABORTING: 'ABORTING',
+  DELETING_COMMENT: 'DELETING_COMMENT',
+  ADDING_COMMENT: 'ADDING_COMMENT',
 };
 
 const popup = {
@@ -17,6 +24,8 @@ export default class MoviePresenter {
   #movieListContainer = null;
   #changeMode = null;
   #changeData = null;
+  #apiService = null;
+  #comments = [];
 
   #movieComponent = null;
   #moviePopupComponent = null;
@@ -34,11 +43,14 @@ export default class MoviePresenter {
   init = (movie) => {
     this.#movie = movie;
 
+    this.#apiService = new ApiService(Server.END_POINT, Server.AUTHORIZATION);
+
     const prevMovieComponent = this.#movieComponent;
     const prevMoviePopupComponent = this.#moviePopupComponent;
 
-    this.#movieComponent = new MovieCardView(movie);
-    this.#moviePopupComponent = new MovieDetailsView(movie, this.#changeData);
+    this.#movieComponent = new MovieCardView(this.#movie);
+
+    this.#moviePopupComponent = new MovieDetailsView(this.#movie, this.#changeData);
 
     this.#movieComponent.setClickHandler(this.#handleShowPopup);
 
@@ -77,6 +89,47 @@ export default class MoviePresenter {
     }
   }
 
+setViewState = (state, data) => {
+  //if (this.#mode !== Mode.DEFAULT) {
+  //this.#handleClosePopup();
+  //}
+
+  const resetFormState = () => {
+    delete data.deleteComment;
+    this.#moviePopupComponent.updateData({
+      ...data,
+      isDeletingComment: false,
+      isAddingComment:false,
+    });
+  };
+
+  switch (state) {
+    case State.ADDING_COMMENT:
+      this.#moviePopupComponent.updateData({
+        ...data,
+        isDisabled: true,
+        isAddingComment: true,
+      });
+      break;
+    case State.DELETING_COMMENT:
+      this.#moviePopupComponent.updateData({
+        ...data,
+        isDeletingComment: true
+      });
+      break;
+    case State.ABORTING:
+      if (this.#moviePopupComponent._data.isDeletingComment) {
+        this.#moviePopupComponent.snakeComment(resetFormState);
+      }
+
+      if (this.#moviePopupComponent._data.isAddingComment) {
+        this.#moviePopupComponent.snake(resetFormState);
+      }
+
+      break;
+  }
+}
+
   #escKeyDownHandler = (evt) => {
     if (isEscapeKey(evt)) {
       this.#handleClosePopup();
@@ -91,7 +144,19 @@ export default class MoviePresenter {
     this.#mode = Mode.DEFAULT;
   }
 
+  #loadComments = async () => {
+    try {
+      this.#comments = await this.#apiService.getComments(this.#movie);
+
+      this.#moviePopupComponent.updateData({isLoadComments: true, loadedComments: this.#comments});
+
+    } catch {
+      this.#comments = [];
+    }
+  }
+
   #handleShowPopup = () => {
+    this.#loadComments();
     const footer = document.querySelector('.footer');
 
     document.body.className = 'hide-overflow';
