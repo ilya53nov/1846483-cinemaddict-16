@@ -1,6 +1,7 @@
-import { createElement } from '../utils/render.js';
+import {createElement} from '../utils/render.js';
 
 const SHAKE_ANIMATION_TIMEOUT = 600;
+const THOUSAND = 1000;
 
 export default class AbstractView {
   #element = null;
@@ -28,8 +29,8 @@ export default class AbstractView {
     this.#element = null;
   }
 
-  snake(callback) {
-    this.element.style.animation = `shake ${SHAKE_ANIMATION_TIMEOUT / 1000}s`;
+  setSnakeEffect(callback) {
+    this.element.style.animation = `shake ${SHAKE_ANIMATION_TIMEOUT / THOUSAND}s`;
     setTimeout(() => {
       this.element.style.animation = '';
       callback();

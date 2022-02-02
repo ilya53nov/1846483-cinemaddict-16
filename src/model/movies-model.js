@@ -1,10 +1,9 @@
 import AbstractObservable from '../utils/abstract-observable.js';
-import { UpdateType } from '../const.js';
+import {UpdateType} from '../const.js';
 
 export default class MoviesModel extends AbstractObservable {
   #apiService = null;
   #movies = [];
-  #comments = [];
 
   constructor(apiServise) {
     super();
@@ -19,17 +18,6 @@ export default class MoviesModel extends AbstractObservable {
     return this.#movies;
   }
 
-  init = async () => {
-    try {
-      const movies = await this.#apiService.movies;
-      this.#movies = movies.map(this.#adaptToClient);
-    } catch(err) {
-      this.#movies = [];
-    }
-
-    this._notify(UpdateType.INIT);
-  }
-
   loadMovies = async (updateType, update) => {
     try {
       const movies = await this.#apiService.movies;
@@ -41,54 +29,10 @@ export default class MoviesModel extends AbstractObservable {
     this._notify(updateType, update);
   }
 
-  // TODO
-  loadComments = async (movie) => {
-    try {
-      const comments = await this.#apiService.getComments(movie);
-      this.#comments = comments;
-
-    } catch(err) {
-      this.#comments = [];
-    }
-
-    this._notify(UpdateType.PATCH, movie);
-  }
-
-  // TODO
-  getComments = async (updateType, update) => {
-
-    try {
-      const comments = await this.#apiService.getComments(update);
-      this.#comments = comments;
-
-      const index = this.#movies.findIndex((movie) => movie.id === update.id);
-
-      if (index === -1) {
-        throw new Error('Can\'t update unexisting movie');
-      }
-
-      update = {...update, loadedComments: this.#comments, isLoadComments: true};
-
-      this.#movies = [
-        ...this.#movies.slice(0, index),
-        update,
-        ...this.#movies.slice(index + 1),
-      ];
-
-    } catch(err) {
-      this.#comments = [];
-    }
-
-    this._notify(updateType, update);
-  }
+  init = async () => await this.loadMovies(UpdateType.INIT);
 
   updateMovie = async (updateType, update) => {
-
     const index = this.#movies.findIndex((movie) => movie.id === update.id);
-
-    delete update.isWatched;
-    delete update.isWatchlist;
-    delete update.isFavorite;
 
     if (index === -1) {
       throw new Error('Can\'t update unexisting movie');
@@ -103,7 +47,7 @@ export default class MoviesModel extends AbstractObservable {
         ...this.#movies.slice(index + 1),
       ];
 
-      this._notify(updateType, update);
+      this._notify(updateType, updatedMovie);
 
     } catch (err) {
       throw new Error('Can\'t update movie');
@@ -153,7 +97,6 @@ export default class MoviesModel extends AbstractObservable {
     try {
       await this.#apiService.deleteComment(update.deleteComment);
 
-      //todo
       update.comments = filteredComments;
 
       this._notify(updateType, update);
@@ -192,7 +135,6 @@ export default class MoviesModel extends AbstractObservable {
         totalRating: movie['film_info']['total_rating'],
         writers: movie['film_info']['writers'],
       },
-
       userDetails: {
         watchingDate: movie['user_details']['watching_date'] !== null ? new Date(movie['user_details']['watching_date']) : movie['user_details']['watching_date'],
         alreadyWatched: movie['user_details']['already_watched'],

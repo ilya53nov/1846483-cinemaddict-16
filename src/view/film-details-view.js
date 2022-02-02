@@ -6,7 +6,6 @@ import {getListTemplate} from '../utils/utils.js';
 import {isEscapeKey, isCtrlKey, isEnterKey} from '../utils/utils.js';
 import {UserAction, UpdateType} from '../const.js';
 
-
 dayjs.extend(duration);
 
 const SHAKE_ANIMATION_TIMEOUT = 600;
@@ -77,7 +76,6 @@ const createFilmDetailsControlsTemplate = ({isFavorite, isWatched, isWatchlist})
     <button type="button" class="${controlButtonClass} ${controlButtonClass}--watched ${isWatched ? `${controlButtonClass}--active` : ''}" id="watched" name="watched">Already watched</button>
     <button type="button" class="${controlButtonClass} ${controlButtonClass}--favorite ${isFavorite ? `${controlButtonClass}--active` : ''}" id="favorite" name="favorite">Add to favorites</button>`
   );
-
 };
 
 const createFilmDetailsEmojiListTemplate = (selectedEmoji) => ( //getListTemplate(EMOTIONS, createFilmDetailsEmojiTemplate);
@@ -87,7 +85,6 @@ const createFilmDetailsEmojiListTemplate = (selectedEmoji) => ( //getListTemplat
 );
 
 const createFilmDetailsTemplate = (data) => {
-
   const {
     filmInfo,
     emoji,
@@ -99,7 +96,6 @@ const createFilmDetailsTemplate = (data) => {
     isWatched,
     isWatchlist,
     deleteComment,
-    //isDisabled
     isDeletingComment
   } = data;
   const {
@@ -219,8 +215,7 @@ export default class MovieDetailsView extends SmartView{
   }
 
   get template() {
-    return createFilmDetailsTemplate(this._data);//this.#movie
-
+    return createFilmDetailsTemplate(this._data);
   }
 
   getScrollTop = () => this.#scrollTop;
@@ -249,31 +244,28 @@ export default class MovieDetailsView extends SmartView{
 
   #watchedToggleHandler = (evt) => {
     evt.preventDefault();
-    this.updateData({isWatched: !this._data.isWatched});
     this.#changeData(
       UserAction.UPDATE_MOVIE,
       UpdateType.PATCH,
-      {...this._data, ...this._data.userDetails.alreadyWatched = !this._data.userDetails.alreadyWatched}
+      {...this._data, isWatched: !this._data.userDetails.alreadyWatched}
     );
   }
 
   #watchlistTogglekHandler = (evt) => {
     evt.preventDefault();
-    this.updateData({isWatchlist: !this._data.isWatchlist});
     this.#changeData(
       UserAction.UPDATE_MOVIE,
       UpdateType.PATCH,
-      {...this._data, ...this._data.userDetails.watchlist = !this._data.userDetails.watchlist}
+      {...this._data, isWatchlist: !this._data.userDetails.watchlist}
     );
   }
 
   #favoriteToggleHandler = (evt) => {
     evt.preventDefault();
-    this.updateData({isFavorite: !this._data.isFavorite});
     this.#changeData(
       UserAction.UPDATE_MOVIE,
       UpdateType.PATCH,
-      {...this._data, ...this._data.userDetails.favorite = !this._data.userDetails.favorite}
+      {...this._data, isFavorite: !this._data.userDetails.favorite}
     );
   }
 
@@ -301,7 +293,6 @@ export default class MovieDetailsView extends SmartView{
       keyHandler.enter.down = false;
       this.#submitForm();
     }
-
   }
 
   #keyUpHandler = (evt) => {
@@ -316,28 +307,24 @@ export default class MovieDetailsView extends SmartView{
 
   #submitForm = () => {
     const comment = this.element.querySelector('.film-details__comment-input').value;
-    //todo
     const emotion = this.element.querySelector('.film-details__add-emoji-label').querySelector('img').id;
 
     if (!comment || !emotion) {
       return;
     }
 
-    const localComment = {
-      comment: comment,
-      emotion: emotion,
-    };
-
     this.#changeData(
       UserAction.ADD_COMMENT,
       UpdateType.PATCH,
-      {...this._data, localComment, ...this._data.emoji = emotion, ...this._data.comment = comment}
+      {...this._data, emoji: emotion, comment: comment}
     );
   }
 
   #handleClosePopup = () => {
     document.body.className = '';
+    this.updateData({emoji: '', comment: ''}, true);
     this.element.remove();
+
     document.removeEventListener('keydown', this.#escKeyDownHandler);
   }
 
@@ -351,7 +338,6 @@ export default class MovieDetailsView extends SmartView{
         UpdateType.PATCH,
         {...this._data, deleteComment: evt.target.id}
       );
-
     }
   }
 
@@ -373,7 +359,7 @@ export default class MovieDetailsView extends SmartView{
     this.#setInnerHandlers();
   }
 
-  snakeComment = (callback) => {
+  setSnakeEffectComment = (callback) => {
     const commentElement = this.element.querySelector(`.film-details__comment[data-id="${this._data.deleteComment}"]`);
 
     commentElement.style.animation = `shake ${SHAKE_ANIMATION_TIMEOUT / 1000}s`;
@@ -385,16 +371,8 @@ export default class MovieDetailsView extends SmartView{
 
   static parseMovieToData = (movie) => ({
     ...movie,
-    emoji: '',
-    comment: '',
     isWatched: movie.userDetails.alreadyWatched,
     isWatchlist: movie.userDetails.watchlist,
     isFavorite: movie.userDetails.favorite,
-
   });
-
-  static parseDataToMovie = (data) => {
-    // TO DO
-    delete data.isDeletingComment;
-  }
 }

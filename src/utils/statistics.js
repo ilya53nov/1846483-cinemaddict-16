@@ -23,7 +23,7 @@ const getKeysItems = (items) => {
 };
 
 const getUniqItemsAndCount = (items) => {
-  const mapItems = new Map();
+  let mapItems = new Map();
 
   items.forEach((item) => {
     if (mapItems.has(item)) {
@@ -32,6 +32,8 @@ const getUniqItemsAndCount = (items) => {
       mapItems.set(item, 1);
     }
   });
+
+  mapItems = new Map([...mapItems.entries()].sort((current, next) => next[1] - current[1]));
 
   return {genres: getKeysItems(mapItems), counts: getValuesItems(mapItems)};
 };

@@ -18,6 +18,11 @@ const apiService = new ApiService(Server.END_POINT, Server.AUTHORIZATION);
 
 const moviesModel = new MoviesModel(apiService);
 
+const loadMovies = async () => {
+  await moviesModel.init();
+  footerStatistics.textContent = moviesModel.movies.length;
+};
+
 const filterModel = new FilterModel();
 const menuViewComponent = new MenuView();
 
@@ -48,5 +53,4 @@ render(siteMainElement, menuViewComponent, RenderPosition.AFTERBEGIN);
 filterPresenter.init();
 movieListPresenter.init();
 
-moviesModel.init();
-footerStatistics.textContent = moviesModel.movies.length;
+loadMovies();

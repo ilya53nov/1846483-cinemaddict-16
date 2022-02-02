@@ -2,7 +2,7 @@ import MovieCardView from '../view/film-card-view.js';
 import MovieDetailsView from '../view/film-details-view.js';
 import {render, RenderPosition, remove} from '../utils/render.js';
 import {isEscapeKey} from '../utils/utils.js';
-import { UserAction, UpdateType, Server } from '../const.js';
+import {UserAction, UpdateType, Server} from '../const.js';
 import ApiService from '../api-service.js';
 
 const Mode = {
@@ -14,6 +14,7 @@ export const State = {
   ABORTING: 'ABORTING',
   DELETING_COMMENT: 'DELETING_COMMENT',
   ADDING_COMMENT: 'ADDING_COMMENT',
+  UPDATE_MOVIE: 'UPDATE_MOVIE',
 };
 
 const popup = {
@@ -22,7 +23,6 @@ const popup = {
 
 export default class MoviePresenter {
   #movieListContainer = null;
-  #changeMode = null;
   #changeData = null;
   #apiService = null;
   #comments = [];
@@ -34,9 +34,8 @@ export default class MoviePresenter {
   #movie = null;
   #mode = Mode.DEFAULT;
 
-  constructor(movieListContainer, changeData, changeMode){
+  constructor(movieListContainer, changeData){
     this.#movieListContainer = movieListContainer;
-    this.#changeMode = changeMode;
     this.#changeData = changeData;
   }
 
@@ -83,31 +82,30 @@ export default class MoviePresenter {
     remove(this.#moviePopupComponent);
   }
 
-  resetView = () => {
-    if (this.#mode !== Mode.DEFAULT) {
-      this.#handleClosePopup();
-    }
-  }
-
 setViewState = (state, data) => {
-  //if (this.#mode !== Mode.DEFAULT) {
-  //this.#handleClosePopup();
-  //}
-
   const resetFormState = () => {
     delete data.deleteComment;
     this.#moviePopupComponent.updateData({
-      ...data,
+      data,
       isDeletingComment: false,
       isAddingComment:false,
     });
   };
 
+  const popupData = this.#moviePopupComponent.getData();
+
   switch (state) {
+    case State.UPDATE_MOVIE:
+      if (this.#mode === Mode.POPUP) {
+        this.#moviePopupComponent.updateData({
+          data,
+        });
+      }
+
+      break;
     case State.ADDING_COMMENT:
       this.#moviePopupComponent.updateData({
         ...data,
-        isDisabled: true,
         isAddingComment: true,
       });
       break;
@@ -118,12 +116,18 @@ setViewState = (state, data) => {
       });
       break;
     case State.ABORTING:
-      if (this.#moviePopupComponent._data.isDeletingComment) {
-        this.#moviePopupComponent.snakeComment(resetFormState);
-      }
-
-      if (this.#moviePopupComponent._data.isAddingComment) {
-        this.#moviePopupComponent.snake(resetFormState);
+      if (this.#mode === Mode.POPUP) {
+        if (popupData.isDeletingComment) {
+          this.#moviePopupComponent.setSnakeEffectComment(resetFormState);
+          break;
+        }
+        if (popupData.isAddingComment) {
+          this.#moviePopupComponent.setSnakeEffect(resetFormState);
+          break;
+        }
+        this.#moviePopupComponent.setSnakeEffect(resetFormState);
+      } else {
+        this.#movieComponent.setSnakeEffect(resetFormState);
       }
 
       break;
@@ -147,7 +151,6 @@ setViewState = (state, data) => {
   #loadComments = async () => {
     try {
       this.#comments = await this.#apiService.getComments(this.#movie);
-
       this.#moviePopupComponent.updateData({isLoadComments: true, loadedComments: this.#comments});
 
     } catch {
@@ -157,6 +160,7 @@ setViewState = (state, data) => {
 
   #handleShowPopup = () => {
     this.#loadComments();
+
     const footer = document.querySelector('.footer');
 
     document.body.className = 'hide-overflow';
@@ -190,7 +194,7 @@ setViewState = (state, data) => {
     this.#changeData(
       UserAction.UPDATE_MOVIE,
       UpdateType.MINOR,
-      {...this.#movie, ...this.#movie.userDetails.favorite = !this.#movie.userDetails.favorite}
+      {...this.#movie, isFavorite: !this.#movie.userDetails.favorite}
     );
   }
 
@@ -198,7 +202,7 @@ setViewState = (state, data) => {
     this.#changeData(
       UserAction.UPDATE_MOVIE,
       UpdateType.MINOR,
-      {...this.#movie, ...this.#movie.userDetails.alreadyWatched = !this.#movie.userDetails.alreadyWatched}
+      {...this.#movie, isWatched: !this.#movie.userDetails.alreadyWatched}
     );
   }
 
@@ -206,7 +210,7 @@ setViewState = (state, data) => {
     this.#changeData(
       UserAction.UPDATE_MOVIE,
       UpdateType.MINOR,
-      {...this.#movie, ...this.#movie.userDetails.watchlist = !this.#movie.userDetails.watchlist}
+      {...this.#movie, isWatchlist: !this.#movie.userDetails.watchlist}
     );
   }
 }

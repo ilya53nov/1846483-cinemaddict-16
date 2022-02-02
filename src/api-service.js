@@ -1,4 +1,3 @@
-
 const Method = {
   GET: 'GET',
   PUT: 'PUT',
@@ -37,7 +36,7 @@ export default class ApiService {
     const response = await this.#load({
       url: `comments/${movie.id}`,
       method: Method.POST,
-      body: JSON.stringify(movie.localComment),
+      body: JSON.stringify({comment: movie.comment, emotion: movie.emoji}),
       headers: new Headers({'Content-Type': 'application/json'}),
     });
 
@@ -81,14 +80,18 @@ export default class ApiService {
 
       'user_details': {
         'watching_date': movie.userDetails.watchingDate instanceof Date ? movie.userDetails.watchingDate.toISOString() : null,
-        'already_watched': movie.userDetails.alreadyWatched,
-        'favorite': movie.userDetails.favorite,
-        'watchlist': movie.userDetails.watchlist,
+        'already_watched': movie.isWatched,
+        'favorite': movie.isFavorite,
+        'watchlist': movie.isWatchlist,
       },
     };
 
     delete adaptedMovie.filmInfo;
     delete adaptedMovie.userDetails;
+    delete adaptedMovie.isWatched;
+    delete adaptedMovie.isFavorite;
+    delete adaptedMovie.isWatchlist;
+
     return adaptedMovie;
   }
 

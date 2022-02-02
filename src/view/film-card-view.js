@@ -39,7 +39,14 @@ export default class MovieCardView extends AbstractView{
   }
 
   get template() {
+    this.parseMovieToData();
     return createFilmCardTemplate(this.#movie);
+  }
+
+  parseMovieToData = () => {
+    this.#movie.isWatched = this.#movie.userDetails.alreadyWatched;
+    this.#movie.isWatchlist = this.#movie.userDetails.watchlist;
+    this.#movie.isFavorite = this.#movie.userDetails.favorite;
   }
 
   setFavoriteClickHandler = (callback) => {
@@ -82,7 +89,5 @@ export default class MovieCardView extends AbstractView{
       evt.preventDefault();
       this._callback.click();
     }
-
   }
-
 }

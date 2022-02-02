@@ -5,69 +5,86 @@ import SmartView from './smart-view.js';
 import {getGenreHistoryMovies, getAmountOfWatchedMinutes, getCountHistoryMovies, filterDataStatistics} from '../utils/statistics.js';
 import {FilterTypeStatistics} from '../const.js';
 
+const BAR_HEIGHT = 50;
+const START_POSITION = 'start';
+const FONT_SIZE = 20;
+const PADDING = 100;
+const OFFSET = 40;
+const BAR_THICKNESS =24;
+
+const Color = {
+  YELLOW: '#ffe800',
+  WHITE: '#ffffff',
+};
+
+const settingChart = {
+  display: false,
+  responsive: false,
+  drawBorder: false,
+  beginAtZero: true,
+  enabled: false,
+  type: 'horizontalBar',
+};
 
 const renderChart = (statisticCtx, movies) => {
-  // TO DO
   const historyMovies = getGenreHistoryMovies(movies, 'genres', 'counts');
-
-  const BAR_HEIGHT = 50;
 
   statisticCtx.height = BAR_HEIGHT * historyMovies.genres.length;
 
   return new Chart(statisticCtx, {
     plugins: [ChartDataLabels],
-    type: 'horizontalBar',
+    type: settingChart.type,
     data: {
       labels: historyMovies.genres,
       datasets: [{
         data: historyMovies.counts,
-        backgroundColor: '#ffe800',
-        hoverBackgroundColor: '#ffe800',
-        anchor: 'start',
-        barThickness: 24,
+        backgroundColor: Color.YELLOW,
+        hoverBackgroundColor: Color.YELLOW,
+        anchor: START_POSITION,
+        barThickness: BAR_THICKNESS,
       }],
     },
     options: {
-      responsive: false,
+      responsive: settingChart.responsive,
       plugins: {
         datalabels: {
           font: {
-            size: 20,
+            size: FONT_SIZE,
           },
-          color: '#ffffff',
-          anchor: 'start',
-          align: 'start',
-          offset: 40,
+          color: Color.WHITE,
+          anchor: START_POSITION,
+          align: START_POSITION,
+          offset: OFFSET,
         },
       },
       scales: {
         yAxes: [{
           ticks: {
-            fontColor: '#ffffff',
-            padding: 100,
-            fontSize: 20,
+            fontColor: Color.WHITE,
+            padding: PADDING,
+            fontSize: FONT_SIZE,
           },
           gridLines: {
-            display: false,
-            drawBorder: false,
+            display: settingChart.display,
+            drawBorder: settingChart.drawBorder,
           },
         }],
         xAxes: [{
           ticks: {
-            display: false,
-            beginAtZero: true,
+            display: settingChart.display,
+            beginAtZero: settingChart.beginAtZero,
           },
           gridLines: {
-            display: false,
-            drawBorder: false,
+            display: settingChart.display,
+            drawBorder: settingChart.drawBorder,
           },
         }],
       },
       legend: {
-        display: false,
+        display: settingChart.display,
       },
       tooltips: {
-        enabled: false,
+        enabled: settingChart.enabled,
       },
     },
   });

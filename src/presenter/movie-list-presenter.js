@@ -18,7 +18,6 @@ export default class MovieListPresenter{
   #moviesModel = null;
   #filterModel = null;
 
-
   #renderedMovieCount = MOVIE_COUNT_PER_STEP;
 
   #movieListComponent = new MovieListView();
@@ -79,17 +78,13 @@ export default class MovieListPresenter{
     this.#filterModel.removeObserver(this.#handleModelEvent);
   }
 
-  #handleModeChange = () => {
-    this.#moviePresenter.forEach((presenter) => presenter.resetView());
-  }
-
   #handleViewAction = async (actionType, updateType, update) => {
     switch (actionType) {
       case UserAction.UPDATE_MOVIE:
+        this.#moviePresenter.get(update.id).setViewState(MoviePresenterViewState.UPDATE_MOVIE, update);
         try {
           await this.#moviesModel.updateMovie(updateType, update);
         } catch {
-          // todo
           this.#moviePresenter.get(update.id).setViewState(MoviePresenterViewState.ABORTING, update);
         }
         break;
@@ -181,7 +176,7 @@ export default class MovieListPresenter{
   }
 
   #renderMovie = (movie) => {
-    const moviePresenter = new MoviePresenter(this.#movieListContainerComponent, this.#handleViewAction, this.#handleModeChange);
+    const moviePresenter = new MoviePresenter(this.#movieListContainerComponent, this.#handleViewAction);
     moviePresenter.init(movie);
     this.#moviePresenter.set(movie.id, moviePresenter);
   }
