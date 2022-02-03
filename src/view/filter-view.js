@@ -5,7 +5,7 @@ const createFilterItemTemplate = (filter, currentFilterType) => {
   const {type, name, count} = filter;
 
   return (
-    `<a href="#${String(name).toLowerCase()}" id="${type}" class="main-navigation__item${type === currentFilterType ? ' main-navigation__item--active' : ''}">${type === FilterType.ALL ? 'All movies' : name} ${type !== FilterType.ALL ? `<span id=${type} class="main-navigation__item-count">${count}</span>` : ''} </a>`
+    `<a href="#${String(name).toLowerCase()}" id="${type}" data-menu="${MenuItem.MOVIES}" class="main-navigation__item${type === currentFilterType ? ' main-navigation__item--active' : ''}">${type === FilterType.ALL ? 'All movies' : name} ${type !== FilterType.ALL ? `<span id=${type} class="main-navigation__item-count">${count}</span>` : ''} </a>`
   );
 };
 
@@ -15,7 +15,7 @@ const createFilterTemplate = (filterItems, currentFilterType) => {
     .join('');
 
   return (
-    `<div class="main-navigation__items" id=${MenuItem.MOVIES}>
+    `<div class="main-navigation__items">
     ${filterItemsTemplate}
     </div>`
   );

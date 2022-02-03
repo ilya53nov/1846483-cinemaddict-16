@@ -1,8 +1,8 @@
 import {render, RenderPosition} from '../utils/render.js';
 import MoviePresenter, {State as MoviePresenterViewState} from './movie-presenter.js';
-import MovieListView from '../view/film-list-view.js';
-import MovieListContainerView from '../view/film-list-container-view.js';
-import MovieSectionView from '../view/films-section-view.js';
+import MovieListView from '../view/movie-list-view.js';
+import MovieListContainerView from '../view/movie-list-container-view.js';
+import MovieSectionView from '../view/movie-section-view.js';
 import ShowMoreButtonView from '../view/button-show-more-view.js';
 import {remove} from '../utils/render.js';
 import SortView from '../view/sort-view.js';
@@ -70,7 +70,7 @@ export default class MovieListPresenter{
   }
 
   destroy = () => {
-    this.#clearBoard({resetRenderedTaskCount: true, resetSortType: true});
+    this.#clearBoard({resetRenderedMovieCount: true, resetSortType: true});
 
     remove(this.#movieListComponent);
 
@@ -103,7 +103,6 @@ export default class MovieListPresenter{
         } catch {
           this.#moviePresenter.get(update.id).setViewState(MoviePresenterViewState.ABORTING, update);
         }
-
         break;
     }
   }
@@ -149,6 +148,7 @@ export default class MovieListPresenter{
 
     if (resetRenderedMovieCount) {
       this.#renderedMovieCount = MOVIE_COUNT_PER_STEP;
+
     } else {
       this.#renderedMovieCount = Math.min(movieCount, this.#renderedMovieCount);
     }

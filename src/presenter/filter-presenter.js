@@ -33,9 +33,9 @@ export default class FilterPresenter {
         count: filter[FilterType.ALL](movies).length,
       },
       {
-        type: FilterType.FAVORITES,
-        name: 'Favorites',
-        count: filter[FilterType.FAVORITES](movies).length,
+        type: FilterType.WATCHLIST,
+        name: 'Watchlist',
+        count: filter[FilterType.WATCHLIST](movies).length,
       },
       {
         type: FilterType.HISTORY,
@@ -43,9 +43,9 @@ export default class FilterPresenter {
         count: filter[FilterType.HISTORY](movies).length,
       },
       {
-        type: FilterType.WATCHLIST,
-        name: 'Watchlist',
-        count: filter[FilterType.WATCHLIST](movies).length,
+        type: FilterType.FAVORITES,
+        name: 'Favorites',
+        count: filter[FilterType.FAVORITES](movies).length,
       },
     ];
   }

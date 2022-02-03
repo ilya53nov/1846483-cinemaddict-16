@@ -1,5 +1,5 @@
-import MovieCardView from '../view/film-card-view.js';
-import MovieDetailsView from '../view/film-details-view.js';
+import MovieCardView from '../view/movie-card-view.js';
+import MovieDetailsView from '../view/movie-details-view.js';
 import {render, RenderPosition, remove} from '../utils/render.js';
 import {isEscapeKey} from '../utils/utils.js';
 import {UserAction, UpdateType, Server} from '../const.js';
@@ -118,16 +118,16 @@ setViewState = (state, data) => {
     case State.ABORTING:
       if (this.#mode === Mode.POPUP) {
         if (popupData.isDeletingComment) {
-          this.#moviePopupComponent.setSnakeEffectComment(resetFormState);
+          this.#moviePopupComponent.setShakeEffectComment(resetFormState);
           break;
         }
         if (popupData.isAddingComment) {
-          this.#moviePopupComponent.setSnakeEffect(resetFormState);
+          this.#moviePopupComponent.setShakeEffect(resetFormState);
           break;
         }
-        this.#moviePopupComponent.setSnakeEffect(resetFormState);
+        this.#moviePopupComponent.setShakeEffect(resetFormState);
       } else {
-        this.#movieComponent.setSnakeEffect(resetFormState);
+        this.#movieComponent.setShakeEffect(resetFormState);
       }
 
       break;
@@ -178,6 +178,8 @@ setViewState = (state, data) => {
     }
 
     this.#moviePopupComponent.restoreHandlers();
+
+    this.#moviePopupComponent.setEscKeyDownHandler(this.#escKeyDownHandler);
 
     document.addEventListener('keydown', this.#escKeyDownHandler);
 

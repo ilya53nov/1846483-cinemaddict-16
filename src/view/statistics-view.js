@@ -206,7 +206,7 @@ export default class StatisticsView extends SmartView {
     this.updateElement();
   }
 
-  #handleClick = (evt) => {
+  #clickHandler = (evt) => {
     evt.preventDefault();
 
     if (evt.target.tagName === 'LABEL') {
@@ -231,7 +231,7 @@ export default class StatisticsView extends SmartView {
   }
 
   #setInnerHandlers = () => {
-    this.element.querySelector('.statistic__filters').addEventListener('click', this.#handleClick);
+    this.element.querySelector('.statistic__filters').addEventListener('click', this.#clickHandler);
   }
 
   restoreHandlers = () => {

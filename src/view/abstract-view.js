@@ -29,7 +29,7 @@ export default class AbstractView {
     this.#element = null;
   }
 
-  setSnakeEffect(callback) {
+  setShakeEffect(callback) {
     this.element.style.animation = `shake ${SHAKE_ANIMATION_TIMEOUT / THOUSAND}s`;
     setTimeout(() => {
       this.element.style.animation = '';

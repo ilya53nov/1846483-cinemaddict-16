@@ -21,8 +21,6 @@ export default class ApiService {
 
   getComments = (movie) => this.#load({url: `comments/${movie.id}`}).then(ApiService.parseResponse);
 
-  getMovies = () => this.#load({url: 'movies'}).then(ApiService.parseResponse);
-
   deleteComment = async (comment) => {
     const response = await this.#load({
       url: `comments/${comment}`,

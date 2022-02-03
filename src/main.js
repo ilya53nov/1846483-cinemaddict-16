@@ -1,13 +1,12 @@
 import MovieListPresenter from './presenter/movie-list-presenter.js';
 import MoviesModel from './model/movies-model.js';
 import {render, RenderPosition, remove} from './utils/render.js';
-import MenuView from './view/site-menu-view.js';
+import MenuView from './view/menu-view.js';
 import FilterModel from './model/filter-model.js';
 import FilterPresenter from './presenter/filter-presenter.js';
 import {MenuItem, Server} from './const.js';
 import StatisticsView from './view/statistics-view.js';
 import ApiService from './api-service.js';
-
 
 const siteMainElement = document.querySelector('.main');
 const siteHeaderElement = document.querySelector('.header');
@@ -20,7 +19,7 @@ const moviesModel = new MoviesModel(apiService);
 
 const loadMovies = async () => {
   await moviesModel.init();
-  footerStatistics.textContent = moviesModel.movies.length;
+  footerStatistics.textContent = `${moviesModel.movies.length} movies inside` ;
 };
 
 const filterModel = new FilterModel();
